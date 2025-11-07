@@ -1,30 +1,7 @@
-// ==== State ====
-const MQ = MathQuill.getInterface(2);
-
-const state = {
-	functions: [],
-	colors: ['#c74440', '#2d70b3', '#348543', '#fa7e19', '#6042a6', '#000000'],
-	colorIndex: 0,
-	world: { xmin: -10, xmax: 10, ymin: -10, ymax: 10 },
-	drag: { active: false, x: 0, y: 0, worldStart: null },
-};
-
-
-// ==== DOM Refs ====
-const el = {
-	canvas: document.getElementById('canvas'),
-	sidebar: document.getElementById('sidebar'),
-	fnList: document.getElementById('fn-list'),
-	addBtn: document.getElementById('add-fn'),
-	ranges: document.getElementById('ranges'),
-	app: document.getElementById('app'),
-	resizer: document.getElementById('resizer'),
-};
+import { state, el } from '../core/state.js';
 
 const ctx = el.canvas.getContext('2d');
 
-
-// ==== Canvas Helpers ====
 function reflowWorldToCanvas() {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
@@ -62,15 +39,14 @@ function worldToScreen(x, y) {
 function screenToWorld(sx, sy) {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
-	const x = state.world.xmin + sx * (state.world.xmax - state.world.xmin) / w;
-	const y = state.world.ymin + (h - sy) * (state.world.ymax - state.world.ymin) / h;
+	const x = state.world.xmin + (sx * (state.world.xmax - state.world.xmin)) / w;
+	const y = state.world.ymin + ((h - sy) * (state.world.ymax - state.world.ymin)) / h;
 	return { x, y };
 }
 
 function niceStep(raw) {
 	const pow10 = Math.pow(10, Math.floor(Math.log10(raw)));
 	const n = raw / pow10;
-
 	let step;
 	if (n < 1.5) {
 		step = 1;
@@ -81,12 +57,11 @@ function niceStep(raw) {
 	} else {
 		step = 10;
 	}
-
 	return step * pow10;
 }
 
 function round(v) {
-	const s = (state.world.xmax - state.world.xmin);
+	const s = state.world.xmax - state.world.xmin;
 	const d = Math.max(0, 2 - Math.floor(Math.log10(Math.max(1e-9, s))));
 	return Number(v.toFixed(d));
 }
@@ -118,8 +93,6 @@ function formatTick(v, step) {
 	return s.replace(/\.?0+$/, '');
 }
 
-
-// ==== Grid Rendering ====
 function drawGrid() {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
@@ -146,7 +119,9 @@ function drawGrid() {
 	for (let x = xStartMinor; x <= state.world.xmax + 1e-12; x += stepMinor) {
 		const k = Math.round((x - xStartMajor) / stepMajor);
 		const isMajorAligned = Math.abs(x - (xStartMajor + k * stepMajor)) <= stepMinor * 0.5e-3;
-		if (isMajorAligned) continue;
+		if (isMajorAligned) {
+			continue;
+		}
 		const p1 = worldToScreen(x, state.world.ymin);
 		const p2 = worldToScreen(x, state.world.ymax);
 		ctx.beginPath();
@@ -158,7 +133,9 @@ function drawGrid() {
 	for (let y = yStartMinor; y <= state.world.ymax + 1e-12; y += stepMinor) {
 		const k = Math.round((y - yStartMajor) / stepMajor);
 		const isMajorAligned = Math.abs(y - (yStartMajor + k * stepMajor)) <= stepMinor * 0.5e-3;
-		if (isMajorAligned) continue;
+		if (isMajorAligned) {
+			continue;
+		}
 		const p1 = worldToScreen(state.world.xmin, y);
 		const p2 = worldToScreen(state.world.xmax, y);
 		ctx.beginPath();
@@ -234,19 +211,15 @@ function drawGrid() {
 		if (Math.abs(x) < stepMajor * 1e-9) {
 			continue;
 		}
-
 		const p = worldToScreen(x, 0);
 		if (p.x < -20 || p.x > w + 20) {
 			continue;
 		}
-
 		const label = formatTick(x, stepMajor);
 		let drawX = Math.round(p.x);
-
 		if (label[0] === '-') {
 			drawX -= ctx.measureText('-').width / 2;
 		}
-
 		ctx.strokeText(label, drawX, yAxisScreen);
 		ctx.fillText(label, drawX, yAxisScreen);
 	}
@@ -254,7 +227,7 @@ function drawGrid() {
 	ctx.textAlign = 'right';
 	ctx.textBaseline = 'middle';
 
-	const xAxisScreen = (ox >= 0 && ox <= w ? Math.round(ox) - 3 : (ox < 0 ? 16 : w - 3));
+	const xAxisScreen = ox >= 0 && ox <= w ? Math.round(ox) - 3 : (ox < 0 ? 16 : w - 3);
 
 	for (let y = yStartMajor; y <= state.world.ymax + 1e-12; y += stepMajor) {
 		if (Math.abs(y) < stepMajor * 1e-9) {
@@ -264,18 +237,13 @@ function drawGrid() {
 		if (p.y < -20 || p.y > h + 20) {
 			continue;
 		}
-
 		const label = formatTick(y, stepMajor);
-
 		const drawY = Math.round(p.y) + 0.5;
-
 		ctx.strokeText(label, xAxisScreen, drawY);
 		ctx.fillText(label, xAxisScreen, drawY);
 	}
 }
 
-
-// ==== Function Rendering ====
 function drawFunctions() {
 	const w = el.canvas.clientWidth;
 
@@ -283,7 +251,6 @@ function drawFunctions() {
 		if (!f.visible) {
 			continue;
 		}
-
 		ctx.strokeStyle = f.color;
 		ctx.lineWidth = 2.5;
 		ctx.beginPath();
@@ -327,111 +294,14 @@ function drawFunctions() {
 function draw() {
 	drawGrid();
 	drawFunctions();
-
 	el.ranges.textContent = `x: [${round(state.world.xmin)}, ${round(state.world.xmax)}]  y: [${round(state.world.ymin)}, ${round(state.world.ymax)}]`;
 }
 
-
-// ==== Sidebar UI / Function Editor ====
-function addFunction(initial) {
-	const id = crypto.randomUUID();
-	const color = state.colors[state.colorIndex % state.colors.length];
-	++state.colorIndex;
-
-	const wrapper = document.createElement('div');
-	wrapper.className = 'fn-item';
-	wrapper.dataset.id = id;
-
-	const colorDot = document.createElement('div');
-	colorDot.className = 'fn-color';
-	colorDot.style.background = color;
-
-	const mqHost = document.createElement('div');
-	mqHost.className = 'fn-mq';
-
-	const del = document.createElement('div');
-	del.className = 'fn-delete';
-
-	wrapper.appendChild(colorDot);
-	wrapper.appendChild(mqHost);
-	wrapper.appendChild(del);
-	el.fnList.appendChild(wrapper);
-
-	let obj = {
-		id,
-		color,
-		field: null,
-		visible: true,
-		fn: x => NaN
-	};
-
-	const field = MQ.MathField(mqHost, {
-		spaceBehavesLikeTab: true,
-		autoCommands: 'pi theta sqrt',
-		autoOperatorNames: 'sin cos tan cot sec csc asin acos atan ln lg'
-	});
-	obj.field = field;
-
-	if (initial) {
-		field.latex(initial);
-	}
-
-	function onChange() {
-		const latex = field.latex().trim();
-
-		if (!latex) {
-			obj.fn = x => NaN;
-			draw();
-			return;
-		}
-
-		try {
-			obj.fn = compileLatex(latex);
-		} catch (e) {
-			obj.fn = x => NaN;
-		}
-
-		draw();
-	}
-
-	field.config({ handlers: { edit: onChange } });
-
-	state.functions.push(obj);
-
-	colorDot.addEventListener('click', () => {
-		const off = colorDot.classList.toggle('off');
-		if (off) {
-			colorDot.style.background = 'none';
-			colorDot.style.border = `4px solid ${color}`;
-		} else {
-			colorDot.style.background = color;
-			colorDot.style.border = 'none';
-		}
-		obj.visible = !off;
-		draw();
-	});
-
-	del.addEventListener('click', () => {
-		const idx = state.functions.findIndex(x => x.id === id);
-		if (idx >= 0) {
-			state.functions.splice(idx, 1);
-		}
-		wrapper.remove();
-		draw();
-	});
-
-	onChange();
-}
-
-
-// ==== Mouse, Wheel, Keyboard Events ====
 function onWheel(e) {
 	e.preventDefault();
-
 	const rect = el.canvas.getBoundingClientRect();
 	const sx = e.clientX - rect.left;
 	const sy = e.clientY - rect.top;
-
 	const p = screenToWorld(sx, sy);
 	const scale = e.deltaY < 0 ? 0.9 : 1.1;
 
@@ -441,7 +311,6 @@ function onWheel(e) {
 	const nymax = p.y + (state.world.ymax - p.y) * scale;
 
 	state.world = { xmin: nxmin, xmax: nxmax, ymin: nymin, ymax: nymax };
-
 	draw();
 }
 
@@ -456,13 +325,10 @@ function onMove(e) {
 	if (!state.drag.active) {
 		return;
 	}
-
 	const dx = e.clientX - state.drag.x;
 	const dy = e.clientY - state.drag.y;
-
 	const p1 = screenToWorld(0, 0);
 	const p2 = screenToWorld(dx, dy);
-
 	const ddx = p1.x - p2.x;
 	const ddy = p1.y - p2.y;
 
@@ -472,7 +338,6 @@ function onMove(e) {
 		ymin: state.drag.worldStart.ymin + ddy,
 		ymax: state.drag.worldStart.ymax + ddy,
 	};
-
 	draw();
 }
 
@@ -480,70 +345,12 @@ function onUp() {
 	state.drag.active = false;
 }
 
-
-// ==== Init ====
-function initSidebarResize() {
-	let dragging = false;
-	let startX = 0;
-	let startW = 0;
-
-	const minSidebarW = 160;
-	const minCanvasW = 320;
-
-	el.resizer.addEventListener('mousedown', e => {
-		dragging = true;
-		startX = e.clientX;
-		startW = el.sidebar.getBoundingClientRect().width;
-		document.body.style.cursor = 'col-resize';
-		document.body.style.userSelect = 'none';
-	})
-
-	window.addEventListener('mousemove', e => {
-		if (!dragging) {
-			return;
-		}
-
-		const dx = e.clientX - startX;
-		let w = startW + dx;
-
-		const totalW = el.app.clientWidth;
-		const maxSidebarW = totalW - minCanvasW;
-
-		if (w < minSidebarW) {
-			w = minSidebarW;
-		}
-		if (w > maxSidebarW) {
-			w = maxSidebarW;
-		}
-
-		el.app.style.setProperty('--sidebar-w', w + 'px');
-		resizeCanvas();
-	})
-
-	window.addEventListener('mouseup', () => {
-		if (!dragging) {
-			return;
-		}
-		dragging = false;
-		document.body.style.cursor = '';
-		document.body.style.userSelect = '';
-	})
-}
-
-function init() {
-	initSidebarResize();
+function initCanvas() {
 	resizeCanvas();
-
-	addFunction('y=x');
-	addFunction('y=\\sin(x)');
-
-	el.addBtn.addEventListener('click', () => addFunction('y='));
-
 	el.canvas.addEventListener('wheel', onWheel, { passive: false });
 	el.canvas.addEventListener('mousedown', onDown);
-
 	window.addEventListener('mousemove', onMove);
 	window.addEventListener('mouseup', onUp);
 }
 
-window.addEventListener('load', init);
+export { initCanvas, resizeCanvas, draw };
