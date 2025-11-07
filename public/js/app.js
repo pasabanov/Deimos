@@ -189,12 +189,12 @@ function drawGrid() {
 	const oy = worldToScreen(0, 0).y;
 
 	ctx.lineWidth = 1;
-	ctx.strokeStyle = '#8c8c8c';
+	ctx.strokeStyle = '#999';
 
 	if (ox >= 0 && ox <= w) {
 		ctx.beginPath();
-		ctx.moveTo(Math.round(ox) + 1.5, 0);
-		ctx.lineTo(Math.round(ox) + 1.5, h);
+		ctx.moveTo(Math.round(ox) + 0.5, 0);
+		ctx.lineTo(Math.round(ox) + 0.5, h);
 		ctx.stroke();
 	}
 	if (oy >= 0 && oy <= h) {
@@ -208,8 +208,8 @@ function drawGrid() {
 
 	if (ox >= 0 && ox <= w) {
 		ctx.beginPath();
-		ctx.moveTo(Math.round(ox) + 0.5, 0);
-		ctx.lineTo(Math.round(ox) + 0.5, h);
+		ctx.moveTo(Math.round(ox) + 1.5, 0);
+		ctx.lineTo(Math.round(ox) + 1.5, h);
 		ctx.stroke();
 	}
 	if (oy >= 0 && oy <= h) {
@@ -252,7 +252,7 @@ function drawGrid() {
 	ctx.textAlign = 'right';
 	ctx.textBaseline = 'middle';
 
-	const xAxisScreen = (ox >= 0 && ox <= w ? Math.round(ox) - 6 : (ox < 0 ? 16 : w - 6));
+	const xAxisScreen = (ox >= 0 && ox <= w ? Math.round(ox) - 3 : (ox < 0 ? 16 : w - 3));
 
 	for (let y = yStartMajor; y <= state.world.ymax + 1e-12; y += stepMajor) {
 		if (Math.abs(y) < stepMajor * 1e-9) {
