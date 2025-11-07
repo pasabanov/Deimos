@@ -6,7 +6,7 @@ const state = {
 	colors: ['#c74440', '#2d70b3', '#348543', '#fa7e19', '#6042a6', '#000000'],
 	colorIndex: 0,
 	world: { xmin: -10, xmax: 10, ymin: -10, ymax: 10 },
-	drag: { active: false, x: 0, y: 0, worldStart: null }
+	drag: { active: false, x: 0, y: 0, worldStart: null },
 };
 
 
@@ -16,7 +16,7 @@ const el = {
 	sidebar: document.getElementById('sidebar'),
 	fnList: document.getElementById('fn-list'),
 	addBtn: document.getElementById('add-fn'),
-	ranges: document.getElementById('ranges')
+	ranges: document.getElementById('ranges'),
 };
 
 const ctx = el.canvas.getContext('2d');
@@ -220,31 +220,55 @@ function drawGrid() {
 	}
 
 	ctx.fillStyle = '#111';
-	ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif';
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 4;
+	ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif';
 	ctx.textBaseline = 'top';
 	ctx.textAlign = 'center';
 
-	const yAxisScreen = oy >= 0 && oy <= h ? Math.round(oy) + 4 : (oy < 0 ? 4 : h - 16);
+	const yAxisScreen = oy >= 0 && oy <= h ? Math.round(oy) + 6 : (oy < 0 ? 4 : h - 16);
 
 	for (let x = xStartMajor; x <= state.world.xmax + 1e-12; x += stepMajor) {
-		if (Math.abs(x) < stepMajor * 1e-9) continue;
+		if (Math.abs(x) < stepMajor * 1e-9) {
+			continue;
+		}
+
 		const p = worldToScreen(x, 0);
-		if (p.x < -20 || p.x > w + 20) continue;
+		if (p.x < -20 || p.x > w + 20) {
+			continue;
+		}
+
 		const label = formatTick(x, stepMajor);
-		ctx.fillText(label, Math.round(p.x), yAxisScreen);
+		let drawX = Math.round(p.x);
+
+		if (label[0] === '-') {
+			drawX -= ctx.measureText('-').width / 2;
+		}
+
+		ctx.strokeText(label, drawX, yAxisScreen);
+		ctx.fillText(label, drawX, yAxisScreen);
 	}
 
 	ctx.textAlign = 'right';
 	ctx.textBaseline = 'middle';
 
-	const xAxisScreen = ox >= 0 && ox <= w ? Math.round(ox) - 4 : (ox < 0 ? w - 4 : 24);
+	const xAxisScreen = (ox >= 0 && ox <= w ? Math.round(ox) - 6 : (ox < 0 ? 16 : w - 6));
 
 	for (let y = yStartMajor; y <= state.world.ymax + 1e-12; y += stepMajor) {
-		if (Math.abs(y) < stepMajor * 1e-9) continue;
+		if (Math.abs(y) < stepMajor * 1e-9) {
+			continue;
+		}
 		const p = worldToScreen(0, y);
-		if (p.y < -20 || p.y > h + 20) continue;
+		if (p.y < -20 || p.y > h + 20) {
+			continue;
+		}
+
 		const label = formatTick(y, stepMajor);
-		ctx.fillText(label, xAxisScreen, Math.round(p.y));
+
+		const drawY = Math.round(p.y) + 0.5;
+
+		ctx.strokeText(label, xAxisScreen, drawY);
+		ctx.fillText(label, xAxisScreen, drawY);
 	}
 }
 
@@ -444,7 +468,7 @@ function onMove(e) {
 		xmin: state.drag.worldStart.xmin + ddx,
 		xmax: state.drag.worldStart.xmax + ddx,
 		ymin: state.drag.worldStart.ymin + ddy,
-		ymax: state.drag.worldStart.ymax + ddy
+		ymax: state.drag.worldStart.ymax + ddy,
 	};
 
 	draw();
