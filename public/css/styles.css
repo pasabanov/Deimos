@@ -19,7 +19,7 @@ body {
 
 #app {
 	display: grid;
-	grid-template-columns: 360px 1fr;
+	grid-template-columns: var(--sidebar-w, 440px) auto 1fr;
 	grid-template-rows: 1fr;
 	min-height: 100vh;
 }
@@ -29,6 +29,35 @@ body {
 	overflow: auto;
 	min-height: 0;
 	border-right: 1px solid #e2e8f0;
+}
+
+#resizer {
+	position: relative;
+	z-index: 10;
+	width: 1px;
+	cursor: col-resize;
+	background: #ddd;
+}
+
+#resizer::before {
+	position: absolute;
+	top: 0;
+	right: 100%;
+	bottom: 0;
+	width: 6px;
+	pointer-events: none;
+	background: linear-gradient(to left, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+	content: '';
+}
+
+#resizer::after {
+	position: absolute;
+	top: 0;
+	right: -8px;
+	bottom: 0;
+	left: -8px;
+	content: '';
+	cursor: col-resize;
 }
 
 #header {
