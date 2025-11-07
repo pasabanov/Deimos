@@ -27,6 +27,7 @@ body {
 #sidebar {
 	padding: 16px;
 	overflow: auto;
+	min-height: 0;
 	border-right: 1px solid #e2e8f0;
 }
 
@@ -109,6 +110,8 @@ body {
 
 #plot-area {
 	position: relative;
+	height: 100%;
+	min-height: 0;
 	background: #ffffff;
 }
 
@@ -130,13 +133,6 @@ body {
 }
 
 #ranges {
-	padding: 6px 8px;
-	background: rgba(248, 250, 252, 0.8);
-	border: 1px solid #e2e8f0;
-	border-radius: 6px;
-}
-
-#hint {
 	padding: 6px 8px;
 	background: rgba(248, 250, 252, 0.8);
 	border: 1px solid #e2e8f0;
