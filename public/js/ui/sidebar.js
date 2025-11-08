@@ -1,6 +1,6 @@
 import { state, el } from '../core/state.js';
 import { draw } from '../graphics/canvas.js';
-import { compileLatex } from '../core/parser.js';
+import { compileLatex } from '../latex-compiler/index.js';
 
 const MQ = window.MathQuill.getInterface(2);
 
@@ -33,13 +33,13 @@ function addFunction(initial) {
 		color,
 		field: null,
 		visible: true,
-		fn: x => NaN,
+		fn: () => NaN,
 	};
 
 	const field = MQ.MathField(mqHost, {
 		spaceBehavesLikeTab: true,
 		autoCommands: 'pi theta sqrt',
-		autoOperatorNames: 'sin cos tan cot sec csc asin acos atan ln lg',
+		autoOperatorNames: 'sin cos tan cot ln lg',
 	});
 	obj.field = field;
 
@@ -51,7 +51,7 @@ function addFunction(initial) {
 		const latex = field.latex().trim();
 
 		if (!latex) {
-			obj.fn = x => NaN;
+			obj.fn = () => NaN;
 			draw();
 			return;
 		}
@@ -59,7 +59,7 @@ function addFunction(initial) {
 		try {
 			obj.fn = compileLatex(latex);
 		} catch (e) {
-			obj.fn = x => NaN;
+			obj.fn = () => NaN;
 		}
 
 		draw();
@@ -96,7 +96,7 @@ function addFunction(initial) {
 
 function initSidebar() {
 	addFunction('x');
-	addFunction('sin(x)');
+	addFunction('sin\\left(x\\right)');
 	el.addBtn.addEventListener('click', () => addFunction(''));
 }
 

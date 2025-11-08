@@ -17,7 +17,7 @@ function reflowWorldToCanvas() {
 }
 
 function resizeCanvas() {
-	const dpr = window.devicePixelRatio || 1;
+	const dpr = window.devicePixelRatio ?? 1;
 	const rect = el.canvas.getBoundingClientRect();
 	el.canvas.width = Math.floor(rect.width * dpr);
 	el.canvas.height = Math.floor(rect.height * dpr);
