@@ -253,6 +253,11 @@ function drawFunctions() {
 		}
 		ctx.strokeStyle = f.color;
 		ctx.lineWidth = 2.5;
+
+		if (f.selected) {
+			ctx.lineWidth += 1;
+		}
+
 		ctx.beginPath();
 
 		let first = true;

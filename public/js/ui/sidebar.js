@@ -33,6 +33,7 @@ function addFunction(initial) {
 		color,
 		field: null,
 		visible: true,
+		selected: false,
 		fn: () => NaN,
 	};
 
@@ -42,6 +43,16 @@ function addFunction(initial) {
 		autoOperatorNames: 'sin cos tan cot ln lg',
 	});
 	obj.field = field;
+
+	field.el().addEventListener('focusin', () => {
+		obj.selected = true;
+		draw();
+	});
+
+	field.el().addEventListener('focusout', () => {
+		obj.selected = false;
+		draw();
+	});
 
 	if (initial) {
 		field.latex(initial);
