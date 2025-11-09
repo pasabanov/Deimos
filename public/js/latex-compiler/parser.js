@@ -72,13 +72,13 @@ class Parser {
 		return lhs;
 	}
 
-	parseExpression(minPrecedence=0, allowImplicit=true) {
+	parseExpression(minPrecedence=0) {
 		let left = this.parseUnary();
 		while (true) {
 			let token = this.peek();
 			let info = OPERATORS_INFO[token?.kind];
 			let implicit = false;
-			if (allowImplicit && !info && this.isImplicitMulAhead()) {
+			if (!info && this.isImplicitMulAhead()) {
 				token = { kind: TOKEN_KIND.MULTIPLY };
 				info = OPERATORS_INFO[TOKEN_KIND.MULTIPLY];
 				implicit = true;
@@ -156,14 +156,31 @@ class Parser {
 				this.expectOneOf([TOKEN_KIND.R_PARENTHESIS, TOKEN_KIND.RIGHT_PARENTHESIS]);
 				return e;
 			}
+			case TOKEN_KIND.L_BRACE: {
+				if (this.tokens[this.pos-1].kind === TOKEN_KIND.POWER) {
+					this.get();
+					const e = this.parseExpression();
+					this.expect(TOKEN_KIND.R_BRACE);
+					return e;
+				} else {
+					throw new Error(`Unexpected left brace '{' at ${this.pos}`);
+				}
+			}
 			case TOKEN_KIND.FRAC: {
 				this.get();
-				this.expect(TOKEN_KIND.L_BRACE);
-				const numerator = this.parseExpression();
-				this.expect(TOKEN_KIND.R_BRACE);
-				this.expect(TOKEN_KIND.L_BRACE);
-				const denominator = this.parseExpression();
-				this.expect(TOKEN_KIND.R_BRACE);
+				let numerator, denominator;
+				if (this.match(TOKEN_KIND.L_BRACE)) {
+					numerator = this.parseExpression();
+					this.expect(TOKEN_KIND.R_BRACE);
+				} else {
+					numerator = this.parsePrimary();
+				}
+				if (this.match(TOKEN_KIND.L_BRACE)) {
+					denominator = this.parseExpression();
+					this.expect(TOKEN_KIND.R_BRACE);
+				} else {
+					denominator = this.parsePrimary();
+				}
 				return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.FRAC, [numerator, denominator]);
 			}
 			case TOKEN_KIND.SQRT:
@@ -176,7 +193,17 @@ class Parser {
 			case TOKEN_KIND.LN:
 			case TOKEN_KIND.LG: {
 				this.get();
-				return new Node(NODE_TYPE.FUNCTION, null, functionTokenToName(token.kind), this.parseFuncArguments());
+				let exponent;
+				if (this.peek().kind === TOKEN_KIND.POWER) {
+					this.get();
+					exponent = this.parsePrimary();
+				}
+				const f = new Node(NODE_TYPE.FUNCTION, null, functionTokenToName(token.kind), this.parseFuncArguments());
+				if (exponent !== undefined) {
+					return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.POWER, [f, exponent]);
+				} else {
+					return f;
+				}
 			}
 			default:
 				throw new Error(`Unexpected token ${token.kind} at ${this.pos}`);
@@ -186,10 +213,9 @@ class Parser {
 	parseFuncArguments() {
 		const braces = this.match(TOKEN_KIND.L_BRACE);
 		const parentheses = this.matchOneOf([TOKEN_KIND.L_PARENTHESIS, TOKEN_KIND.LEFT_PARENTHESIS]);
-		const allowImplicit = braces || parentheses;
-		const minPrecedence = allowImplicit ? 0 : (OPERATORS_INFO[TOKEN_KIND.POWER].precedence);
+		const minPrecedence = braces || parentheses ? 0 : (OPERATORS_INFO[TOKEN_KIND.MULTIPLY].precedence);
 		let args = [];
-		args.push(this.parseExpression(minPrecedence, allowImplicit));
+		args.push(this.parseExpression(minPrecedence));
 		if (braces || parentheses) {
 			while (this.match(TOKEN_KIND.COMMA)) {
 				args.push(this.parseExpression());

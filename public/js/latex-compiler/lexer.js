@@ -79,6 +79,14 @@ class Lexer {
 				tokens.push(new Token(lastValid, lastValid, start));
 			}
 			this.skipWhitespace();
+			if (tokens[tokens.length-1].kind === TOKEN_KIND.POWER) {
+				if (isDigit(this.peek())) {
+					tokens.push(new Token(TOKEN_KIND.NUMBER, this.get(), this.pos - 1));
+				} else if (isAlpha(this.peek())) {
+					tokens.push(new Token(TOKEN_KIND.IDENTIFIER, this.get(), this.pos - 1));
+				}
+				this.skipWhitespace();
+			}
 		}
 		return tokens;
 	}
