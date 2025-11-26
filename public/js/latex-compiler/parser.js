@@ -1,4 +1,4 @@
-import { TOKEN_KIND, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, functionTokenToName, NODE_TYPE, Node } from './syntax.js';
+import { TOKEN_KIND, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, functionTokenToName, NODE_TYPE, Node } from './syntax.js';
 
 class Parser {
 	constructor(tokens) {
@@ -136,6 +136,14 @@ class Parser {
 				this.get();
 				return new Node(NODE_TYPE.NUMBER, parseFloat(token.text), null, null);
 			}
+			case TOKEN_KIND.PI: {
+				this.get();
+				return new Node(NODE_TYPE.NUMBER, Math.PI, null, null);
+			}
+			case TOKEN_KIND.PHI: {
+				this.get();
+				return new Node(NODE_TYPE.NUMBER, CONSTANTS['phi'], null, null);
+			}
 			case TOKEN_KIND.IDENTIFIER: {
 				this.get();
 				if (token.text === 'x') {
@@ -147,7 +155,7 @@ class Parser {
 				if (CONSTANTS.hasOwnProperty(token.text)) {
 					return new Node(NODE_TYPE.NUMBER, CONSTANTS[token.text], null, null);
 				}
-				return new Node(NODE_TYPE.VARIABLE, null, token.text, null);
+				return new Node(NODE_TYPE.IDENTIFIER, null, token.text, null);
 			}
 			case TOKEN_KIND.L_PARENTHESIS:
 			case TOKEN_KIND.LEFT_PARENTHESIS: {
@@ -164,6 +172,34 @@ class Parser {
 					return e;
 				} else {
 					throw new Error(`Unexpected left brace '{' at ${this.pos}`);
+				}
+			}
+			case TOKEN_KIND.OPERATORNAME: {
+				this.get();
+
+				this.expect(TOKEN_KIND.L_BRACE);
+				const identifier = this.get();
+				if (identifier.kind !== TOKEN_KIND.IDENTIFIER) {
+					throw new Error(`Expected identifier after '\\operatorname{' at ${this.pos}`);
+				}
+				this.expect(TOKEN_KIND.R_BRACE);
+
+				let funcName = identifier.text;
+				if (FUNCTION_ALIASES.hasOwnProperty(funcName)) {
+					funcName = FUNCTION_ALIASES[funcName];
+				}
+
+				let exponent;
+				if (this.peek().kind === TOKEN_KIND.POWER) {
+					this.get();
+					exponent = this.parsePrimary();
+				}
+
+				const f = new Node(NODE_TYPE.FUNCTION, null, funcName, this.parseFuncArguments());
+				if (exponent !== undefined) {
+					return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.POWER, [f, exponent]);
+				} else {
+					return f;
 				}
 			}
 			case TOKEN_KIND.FRAC: {
@@ -184,14 +220,26 @@ class Parser {
 				return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.FRAC, [numerator, denominator]);
 			}
 			case TOKEN_KIND.SQRT:
+			case TOKEN_KIND.EXP:
+			case TOKEN_KIND.LN:
+			case TOKEN_KIND.LG:
 			case TOKEN_KIND.SIN:
 			case TOKEN_KIND.COS:
 			case TOKEN_KIND.TG:
 			case TOKEN_KIND.TAN:
 			case TOKEN_KIND.CTG:
 			case TOKEN_KIND.COT:
-			case TOKEN_KIND.LN:
-			case TOKEN_KIND.LG: {
+			case TOKEN_KIND.SEC:
+			case TOKEN_KIND.CSC:
+			case TOKEN_KIND.ARCSIN:
+			case TOKEN_KIND.ARCCOS:
+			case TOKEN_KIND.ARCTAN:
+			case TOKEN_KIND.SINH:
+			case TOKEN_KIND.COSH:
+			case TOKEN_KIND.TANH:
+			case TOKEN_KIND.COTH:
+			case TOKEN_KIND.MIN:
+			case TOKEN_KIND.MAX: {
 				this.get();
 				let exponent;
 				if (this.peek().kind === TOKEN_KIND.POWER) {
@@ -237,6 +285,7 @@ class Parser {
 			case TOKEN_KIND.IDENTIFIER:
 			case TOKEN_KIND.L_PARENTHESIS:
 			case TOKEN_KIND.LEFT_PARENTHESIS:
+			case TOKEN_KIND.PI:
 			case TOKEN_KIND.SIN:
 			case TOKEN_KIND.COS:
 			case TOKEN_KIND.TG:

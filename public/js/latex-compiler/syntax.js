@@ -18,15 +18,28 @@ const TOKEN_KIND = Object.freeze({
 	R_BRACE: '}',
 	LEFT_BRACE: '\\left{',
 	RIGHT_BRACE: '\\right}',
+	PI: '\\pi',
+	PHI: '\\phi',
 	SQRT: '\\sqrt',
-	SIN: '\\sin',
-	COS: '\\cos',
-	TG: '\\tg',
-	TAN: '\\tan',
-	CTG: '\\ctg',
-	COT: '\\cot',
+	EXP: '\\exp',
 	LN: '\\ln',
 	LG: '\\lg',
+	OPERATORNAME: '\\operatorname',
+	SIN: '\\sin',
+	COS: '\\cos',
+	TAN: '\\tan',
+	COT: '\\cot',
+	SEC: '\\sec',
+	CSC: '\\csc',
+	ARCSIN: '\\arcsin',
+	ARCCOS: '\\arccos',
+	ARCTAN: '\\arctan',
+	SINH: '\\sinh',
+	COSH: '\\cosh',
+	TANH: '\\tanh',
+	COTH: '\\coth',
+	MIN: '\\min',
+	MAX: '\\max',
 	END: 'end',
 	INVALID: 'invalid',
 });
@@ -53,6 +66,7 @@ const OPERATORS_INFO = Object.freeze({
 const CONSTANTS = Object.freeze({
 	'e': Math.E,
 	'pi': Math.PI,
+	'phi': (1 + Math.sqrt(5)) / 2,
 });
 
 const OPERATORS = Object.freeze({
@@ -68,14 +82,109 @@ const OPERATORS = Object.freeze({
 const FUNCTIONS = Object.freeze({
 	FRAC: 'frac',
 	SQRT: 'sqrt',
-	SIN: 'sin',
-	COS: 'cos',
-	TG: 'tg',
-	CTG: 'ctg',
+	ABS: 'abs',
+	SIGN: 'sign',
+	ROUND: 'round',
+	FLOOR: 'floor',
+	CEIL: 'ceil',
+	EXP: 'exp',
 	LN: 'ln',
 	LG: 'lg',
+	SIN: 'sin',
+	COS: 'cos',
+	TAN: 'tan',
+	COT: 'cot',
+	SEC: 'sec',
+	CSC: 'csc',
+	ARCSIN: 'arcsin',
+	ARCCOS: 'arccos',
+	ARCTAN: 'arctan',
+	ARCCOT: 'arccot',
+	ARCSEC: 'arcsec',
+	ARCCSC: 'arccsc',
+	SINH: 'sinh',
+	COSH: 'cosh',
+	TANH: 'tanh',
+	COTH: 'coth',
+	SECH: 'sech',
+	CSCH: 'csch',
+	ARCSINH: 'arcsinh',
+	ARCCOSH: 'arccosh',
+	ARCTANH: 'arctanh',
+	ARCCOTH: 'arccoth',
+	ARCSECH: 'arcsech',
+	ARCCSCH: 'arccsch',
+	MIN: 'min',
+	MAX: 'max',
 	UNKNOWN: 'unknown',
 });
+
+const STRUCTURAL_FUNCTIONS = ['frac', 'sqrt'];
+
+const FUNCTION_ALIASES = Object.freeze({
+	'sgn': 'sign',
+
+	'tg': 'tan',
+	'ctg': 'cot',
+	'cosec': 'csc',
+
+	'asin': 'arcsin',
+	'acos': 'arccos',
+	'atan': 'arctan',
+	'arctg': 'arctan',
+	'atg': 'arctan',
+	'acot': 'arccot',
+	'arcctg': 'arccot',
+	'actg': 'arccot',
+	'asec': 'arcsec',
+	'acsc': 'arccsc',
+	'arccosec': 'arccsc',
+	'acosec': 'arccsc',
+
+	'sh': 'sinh',
+	'ch': 'cosh',
+	'th': 'tanh',
+	'tgh': 'tanh',
+	'cth': 'coth',
+	'ctgh': 'coth',
+	'sch': 'sech',
+	'cosech': 'csch',
+
+	// arcsinh
+	'asinh': 'arcsinh',
+	'arcsh': 'arcsinh',
+	'ash': 'arcsinh',
+	// arccosh
+	'acosh': 'arccosh',
+	'arcch': 'arccosh',
+	'ach': 'arccosh',
+	// arctanh
+	'atanh': 'arctanh',
+	'arcth': 'arctanh',
+	'ath': 'arctanh',
+	'arctgh': 'arctanh',
+	'atgh': 'arctanh',
+	// arccoth
+	'acoth': 'arccoth',
+	'arccth': 'arccoth',
+	'acth': 'arccoth',
+	'arcctgh': 'arccoth',
+	'actgh': 'arccoth',
+	// arcsech
+	'asech': 'arcsech',
+	'arcsch': 'arcsech',
+	'asch': 'arcsech',
+	// arccsch
+	'acsch': 'arccsch',
+	'arccosech': 'arccsch',
+	'acosech': 'arccsch',
+});
+
+const AUTO_OPERATOR_NAMES_FOR_MATHQUILL
+	= Object.values(FUNCTIONS)
+		.filter(f => !STRUCTURAL_FUNCTIONS.includes(f) && f !== 'unknown')
+		.concat(Object.keys(FUNCTION_ALIASES))
+		.join(' ');
 
 function functionTokenToName(kind) {
 	switch (kind) {
@@ -83,20 +192,42 @@ function functionTokenToName(kind) {
 			return FUNCTIONS.FRAC;
 		case TOKEN_KIND.SQRT:
 			return FUNCTIONS.SQRT;
-		case TOKEN_KIND.SIN:
-			return FUNCTIONS.SIN;
-		case TOKEN_KIND.COS:
-			return FUNCTIONS.COS;
-		case TOKEN_KIND.TG:
-		case TOKEN_KIND.TAN:
-			return FUNCTIONS.TG;
-		case TOKEN_KIND.CTG:
-		case TOKEN_KIND.COT:
-			return FUNCTIONS.CTG;
+		case TOKEN_KIND.EXP:
+			return FUNCTIONS.EXP;
 		case TOKEN_KIND.LN:
 			return FUNCTIONS.LN;
 		case TOKEN_KIND.LG:
 			return FUNCTIONS.LG;
+		case TOKEN_KIND.SIN:
+			return FUNCTIONS.SIN;
+		case TOKEN_KIND.COS:
+			return FUNCTIONS.COS;
+		case TOKEN_KIND.TAN:
+			return FUNCTIONS.TAN;
+		case TOKEN_KIND.COT:
+			return FUNCTIONS.COT;
+		case TOKEN_KIND.SEC:
+			return FUNCTIONS.SEC;
+		case TOKEN_KIND.CSC:
+			return FUNCTIONS.CSC;
+		case TOKEN_KIND.ARCSIN:
+			return FUNCTIONS.ARCSIN;
+		case TOKEN_KIND.ARCCSC:
+			return FUNCTIONS.ARCCOS;
+		case TOKEN_KIND.ARCTAN:
+			return Function.ARCTAN;
+		case TOKEN_KIND.SINH:
+			return FUNCTIONS.SINH;
+		case TOKEN_KIND.COSH:
+			return FUNCTIONS.COSH;
+		case TOKEN_KIND.TANH:
+			return FUNCTIONS.TANH;
+		case TOKEN_KIND.COTH:
+			return FUNCTIONS.COTH;
+		case TOKEN_KIND.MIN:
+			return FUNCTIONS.MIN;
+		case TOKEN_KIND.MAX:
+			return FUNCTIONS.MAX;
 		default:
 			return FUNCTIONS.UNKNOWN;
 	}
@@ -107,6 +238,7 @@ const NODE_TYPE = Object.freeze({
 	VARIABLE: 'variable',
 	OPERATOR: 'operator',
 	FUNCTION: 'function',
+	IDENTIFIER: 'identifier',
 });
 
 class Node {
@@ -118,4 +250,4 @@ class Node {
 	}
 }
 
-export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, functionTokenToName, NODE_TYPE, Node };
+export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, STRUCTURAL_FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, functionTokenToName, NODE_TYPE, Node };

@@ -1,6 +1,7 @@
 import { state, el } from '../core/state.js';
 import { draw } from '../graphics/canvas.js';
 import { compileLatex } from '../latex-compiler/index.js';
+import { AUTO_OPERATOR_NAMES_FOR_MATHQUILL } from '../latex-compiler/syntax.js';
 
 const MQ = window.MathQuill.getInterface(2);
 
@@ -39,8 +40,8 @@ function addFunction(initial) {
 
 	const field = MQ.MathField(mqHost, {
 		spaceBehavesLikeTab: true,
-		autoCommands: 'pi theta sqrt',
-		autoOperatorNames: 'sin cos tan cot ln lg',
+		autoCommands: 'pi phi theta sqrt',
+		autoOperatorNames: AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
 	});
 	obj.field = field;
 
