@@ -1,3 +1,4 @@
+import { state } from '../core/state.js';
 import { TOKEN_KIND, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, functionTokenToName, NODE_TYPE, Node } from './syntax.js';
 
 class Parser {
@@ -241,6 +242,29 @@ class Parser {
 					return new Node(NODE_TYPE.FUNCTION, null, 'sqrt', args);
 				} else {
 					return new Node(NODE_TYPE.FUNCTION, null, 'root', [degree].concat(args));
+				}
+			}
+			case TOKEN_KIND.LOG: {
+				this.get();
+				let exponent;
+				let base;
+				while (this.peek().kind === TOKEN_KIND.POWER || this.peek().kind === TOKEN_KIND.UNDERSCORE) {
+					if (this.peek().kind === TOKEN_KIND.POWER) {
+						this.get();
+						exponent = this.parsePrimary();
+					} else {
+						this.get();
+						base = this.parsePrimary();
+					}
+				}
+				if (base === undefined) {
+					base = new Node(NODE_TYPE.NUMBER, state.defaultLogBase, null, null);
+				}
+				const f = new Node(NODE_TYPE.FUNCTION, null, 'log', [base].concat(this.parseFuncArguments()));
+				if (exponent !== undefined) {
+					return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.POWER, [f, exponent]);
+				} else {
+					return f;
 				}
 			}
 			case TOKEN_KIND.EXP:

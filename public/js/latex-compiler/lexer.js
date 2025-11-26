@@ -81,7 +81,7 @@ class Lexer {
 				}
 			}
 			this.skipWhitespace();
-			if (tokens[tokens.length-1].kind === TOKEN_KIND.POWER) {
+			if (tokens[tokens.length-1].kind === TOKEN_KIND.POWER || tokens[tokens.length-1].kind === TOKEN_KIND.UNDERSCORE) {
 				if (isDigit(this.peek())) {
 					tokens.push(new Token(TOKEN_KIND.NUMBER, this.get(), this.pos - 1));
 				} else if (isAlpha(this.peek())) {

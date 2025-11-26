@@ -54,6 +54,8 @@ function evalNode(node, x) {
 				case FUNCTIONS.EXP: return Math.exp(arg1);
 				case FUNCTIONS.LN: return Math.log(arg1);
 				case FUNCTIONS.LG: return Math.log10(arg1);
+				case FUNCTIONS.LB: return Math.log2(arg1);
+				case FUNCTIONS.LOG: return Math.log(evalNode(node.args[1], x)) / Math.log(arg1);
 				case FUNCTIONS.SIN: return Math.sin(arg1);
 				case FUNCTIONS.COS: return Math.cos(arg1);
 				case FUNCTIONS.TAN: return Math.tan(arg1);

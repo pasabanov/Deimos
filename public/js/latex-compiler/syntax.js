@@ -11,6 +11,7 @@ const TOKEN_KIND = Object.freeze({
 	DIVIDE: '/',
 	FRAC: '\\frac',
 	POWER: '^',
+	UNDERSCORE: '_',
 	L_PARENTHESIS: '(',
 	R_PARENTHESIS: ')',
 	LEFT_PARENTHESIS: '\\left(',
@@ -26,11 +27,12 @@ const TOKEN_KIND = Object.freeze({
 	PI: '\\pi',
 	TAU: '\\tau',
 	PHI: '\\phi',
+	OPERATORNAME: '\\operatorname',
 	SQRT: '\\sqrt',
 	EXP: '\\exp',
 	LN: '\\ln',
 	LG: '\\lg',
-	OPERATORNAME: '\\operatorname',
+	LOG: '\\log',
 	SIN: '\\sin',
 	COS: '\\cos',
 	TAN: '\\tan',
@@ -101,6 +103,8 @@ const FUNCTIONS = Object.freeze({
 	EXP: 'exp',
 	LN: 'ln',
 	LG: 'lg',
+	LB: 'lb',
+	LOG: 'log',
 	SIN: 'sin',
 	COS: 'cos',
 	TAN: 'tan',
@@ -195,6 +199,8 @@ function functionTokenToName(kind) {
 			return FUNCTIONS.LN;
 		case TOKEN_KIND.LG:
 			return FUNCTIONS.LG;
+		case TOKEN_KIND.LOG:
+			return FUNCTIONS.LOG;
 		case TOKEN_KIND.SIN:
 			return FUNCTIONS.SIN;
 		case TOKEN_KIND.COS:
