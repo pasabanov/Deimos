@@ -40,6 +40,7 @@ const TOKEN_KIND = Object.freeze({
 	TANH: '\\tanh',
 	COTH: '\\coth',
 	BIG_GAMMA: '\\Gamma',
+	FACTORIAL: '!',
 	MIN: '\\min',
 	MAX: '\\max',
 	END: 'end',
@@ -80,6 +81,7 @@ const OPERATORS = Object.freeze({
 	MULTIPLY: 'multiply',
 	DIVIDE: 'divide',
 	POWER: 'power',
+	FACTORIAL: 'factorial',
 });
 
 const FUNCTIONS = Object.freeze({

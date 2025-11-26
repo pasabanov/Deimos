@@ -18,6 +18,7 @@ function evalNode(node, x) {
 				case OPERATORS.MULTIPLY: return arg1 * evalNode(node.args[1], x);
 				case OPERATORS.DIVIDE: return arg1 / evalNode(node.args[1], x);
 				case OPERATORS.POWER: return arg1 ** evalNode(node.args[1], x);
+				case OPERATORS.FACTORIAL: return mathjs.gamma(arg1 + 1);
 				default: throw new Error(`Unexpected operator: ${node.name}`);
 			}
 		}
@@ -77,7 +78,7 @@ function evalNode(node, x) {
 			}
 		}
 		case NODE_TYPE.IDENTIFIER:
-			throw new Error(`Got identifier node with text '${node.text}'. Identifiers are not supported yet`)
+			throw new Error(`Got identifier node with text '${node.text}'. Identifiers are not supported yet`);
 		default:
 			throw new Error(`Unexpected node type: ${node.type}`);
 	}

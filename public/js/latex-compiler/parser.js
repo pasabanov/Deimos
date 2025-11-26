@@ -123,10 +123,15 @@ class Parser {
 				negative = !negative;
 			}
 		}
-		if (negative) {
-			return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.UNARY_MINUS, [this.parsePrimary()]);
+		let e = this.parsePrimary();
+		while (this.peek().kind === TOKEN_KIND.FACTORIAL) {
+			this.get();
+			e = new Node(NODE_TYPE.OPERATOR, null, OPERATORS.FACTORIAL, [e]);
 		}
-		return this.parsePrimary();
+		if (negative) {
+			return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.UNARY_MINUS, [e]);
+		}
+		return e;
 	}
 
 	parsePrimary() {
