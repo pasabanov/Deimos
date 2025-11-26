@@ -27,6 +27,25 @@ function evalNode(node, x) {
 			switch (node.name) {
 				case FUNCTIONS.FRAC: return arg1 / evalNode(node.args[1], x);
 				case FUNCTIONS.SQRT: return Math.sqrt(arg1);
+				case FUNCTIONS.ROOT: {
+					const degree = arg1;
+					const arg = evalNode(node.args[1], x);
+					if (Number.isInteger(degree)) {
+						if (degree === 1) {
+							return arg;
+						}
+						if (degree === 2) {
+							return Math.sqrt(arg);
+						}
+						if (degree === 3) {
+							return Math.cbrt(arg);
+						}
+						if (arg < 0 && degree % 2 === 1) {
+							return -Math.pow(-arg, 1 / degree);
+						}
+					}
+					return Math.pow(arg, 1 / degree);
+				}
 				case FUNCTIONS.ABS: return Math.abs(arg1);
 				case FUNCTIONS.SIGN: return Math.sign(arg1);
 				case FUNCTIONS.ROUND: return Math.round(arg1);

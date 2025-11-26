@@ -76,7 +76,9 @@ class Lexer {
 					lastValid = this.get();
 				}
 				this.pos = start + lastValid.length;
-				tokens.push(new Token(lastValid, lastValid, start));
+				if (lastValid != TOKEN_KIND.SPACE) {
+					tokens.push(new Token(lastValid, lastValid, start));
+				}
 			}
 			this.skipWhitespace();
 			if (tokens[tokens.length-1].kind === TOKEN_KIND.POWER) {

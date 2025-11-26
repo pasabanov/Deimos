@@ -39,8 +39,10 @@ function addFunction(initial) {
 	};
 
 	const field = MQ.MathField(mqHost, {
-		spaceBehavesLikeTab: true,
-		autoCommands: 'Gamma Delta Theta Lambda Xi Upsilon Phi Psi Omega alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi omega sqrt',
+		supSubsRequireOperand: true,
+		charsThatBreakOutOfSupSub: '+-*=',
+		autoSubscriptNumerals: true,
+		autoCommands: 'Gamma Delta Theta Lambda Xi Upsilon Phi Psi Omega alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi omega sqrt nthroot',
 		autoOperatorNames: AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
 	});
 	obj.field = field;
@@ -60,7 +62,16 @@ function addFunction(initial) {
 	}
 
 	function onChange() {
-		const latex = field.latex().trim();
+		let latex = field.latex();
+		if (latex.includes('cbrt')) {
+			field.keystroke('Backspace');
+			field.keystroke('Backspace');
+			field.keystroke('Backspace');
+			field.keystroke('Backspace');
+			field.write('\\sqrt[3]{}');
+			field.keystroke('Left');
+			latex = field.latex();
+		}
 
 		if (!latex) {
 			obj.fn = () => NaN;

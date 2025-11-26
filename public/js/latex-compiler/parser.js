@@ -228,7 +228,21 @@ class Parser {
 				}
 				return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.FRAC, [numerator, denominator]);
 			}
-			case TOKEN_KIND.SQRT:
+			case TOKEN_KIND.SQRT: {
+				this.get();
+				let degree;
+				if (this.peek().kind === TOKEN_KIND.L_BRACKET) {
+					this.get();
+					degree = this.parseExpression();
+					this.expect(TOKEN_KIND.R_BRACKET);
+				}
+				const args = this.parseFuncArguments();
+				if (degree === undefined) {
+					return new Node(NODE_TYPE.FUNCTION, null, 'sqrt', args);
+				} else {
+					return new Node(NODE_TYPE.FUNCTION, null, 'root', [degree].concat(args));
+				}
+			}
 			case TOKEN_KIND.EXP:
 			case TOKEN_KIND.LN:
 			case TOKEN_KIND.LG:

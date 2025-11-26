@@ -1,6 +1,7 @@
 const TOKEN_KIND = Object.freeze({
 	NUMBER: 'number',
 	IDENTIFIER: 'identifier',
+	SPACE: '\\ ',
 	ASSIGNMENT: '=',
 	COMMA: ',',
 	PLUS: '+',
@@ -14,6 +15,10 @@ const TOKEN_KIND = Object.freeze({
 	R_PARENTHESIS: ')',
 	LEFT_PARENTHESIS: '\\left(',
 	RIGHT_PARENTHESIS: '\\right)',
+	L_BRACKET: '[',
+	R_BRACKET: ']',
+	LEFT_BRACKET: '\\left[',
+	RIGHT_BRACKET: '\\right]',
 	L_BRACE: '{',
 	R_BRACE: '}',
 	LEFT_BRACE: '\\left{',
@@ -87,6 +92,7 @@ const OPERATORS = Object.freeze({
 const FUNCTIONS = Object.freeze({
 	FRAC: 'frac',
 	SQRT: 'sqrt',
+	ROOT: 'root',
 	ABS: 'abs',
 	SIGN: 'sign',
 	ROUND: 'round',
@@ -125,9 +131,7 @@ const FUNCTIONS = Object.freeze({
 	UNKNOWN: 'unknown',
 });
 
-const STRUCTURAL_FUNCTIONS = ['frac', 'sqrt'];
-
-const SPECIAL_FUNCTIONS = ['Gamma'];
+const SPECIAL_FUNCTIONS = ['frac', 'sqrt', 'root', 'Gamma'];
 
 const FUNCTION_ALIASES = Object.freeze({
 	'sgn': 'sign',
@@ -175,7 +179,7 @@ const FUNCTION_ALIASES = Object.freeze({
 
 const AUTO_OPERATOR_NAMES_FOR_MATHQUILL
 	= Object.values(FUNCTIONS)
-		.filter(f => !STRUCTURAL_FUNCTIONS.includes(f) && !SPECIAL_FUNCTIONS.includes(f) && f !== 'unknown')
+		.filter(f => !SPECIAL_FUNCTIONS.includes(f) && f !== 'unknown')
 		.concat(Object.keys(FUNCTION_ALIASES))
 		.join(' ');
 
@@ -245,4 +249,4 @@ class Node {
 	}
 }
 
-export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, STRUCTURAL_FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, functionTokenToName, NODE_TYPE, Node };
+export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, functionTokenToName, NODE_TYPE, Node };
