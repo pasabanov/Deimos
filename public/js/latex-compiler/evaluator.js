@@ -1,3 +1,5 @@
+import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@11.8.2/+esm';
+
 import { NODE_TYPE, OPERATORS, FUNCTIONS } from './syntax.js';
 
 function evalNode(node, x) {
@@ -56,6 +58,7 @@ function evalNode(node, x) {
 				case FUNCTIONS.ARCCOTH: return Math.log((arg1 + 1) / (arg1 - 1)) / 2;
 				case FUNCTIONS.ARCSECH: return Math.acosh(1 / arg1);
 				case FUNCTIONS.ARCCSCH: return Math.asinh(1 / arg1);
+				case FUNCTIONS.GAMMA: return mathjs.gamma(arg1);
 				case FUNCTIONS.MIN: {
 					let min = arg1;
 					for (let i = 1; i < node.args.length; ++i) {

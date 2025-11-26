@@ -140,6 +140,10 @@ class Parser {
 				this.get();
 				return new Node(NODE_TYPE.NUMBER, Math.PI, null, null);
 			}
+			case TOKEN_KIND.TAU: {
+				this.get();
+				return new Node(NODE_TYPE.NUMBER, CONSTANTS['tau'], null, null);
+			}
 			case TOKEN_KIND.PHI: {
 				this.get();
 				return new Node(NODE_TYPE.NUMBER, CONSTANTS['phi'], null, null);
@@ -238,6 +242,7 @@ class Parser {
 			case TOKEN_KIND.COSH:
 			case TOKEN_KIND.TANH:
 			case TOKEN_KIND.COTH:
+			case TOKEN_KIND.BIG_GAMMA:
 			case TOKEN_KIND.MIN:
 			case TOKEN_KIND.MAX: {
 				this.get();

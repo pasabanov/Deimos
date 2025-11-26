@@ -19,6 +19,7 @@ const TOKEN_KIND = Object.freeze({
 	LEFT_BRACE: '\\left{',
 	RIGHT_BRACE: '\\right}',
 	PI: '\\pi',
+	TAU: '\\tau',
 	PHI: '\\phi',
 	SQRT: '\\sqrt',
 	EXP: '\\exp',
@@ -38,6 +39,7 @@ const TOKEN_KIND = Object.freeze({
 	COSH: '\\cosh',
 	TANH: '\\tanh',
 	COTH: '\\coth',
+	BIG_GAMMA: '\\Gamma',
 	MIN: '\\min',
 	MAX: '\\max',
 	END: 'end',
@@ -66,6 +68,7 @@ const OPERATORS_INFO = Object.freeze({
 const CONSTANTS = Object.freeze({
 	'e': Math.E,
 	'pi': Math.PI,
+	'tau': 2 * Math.PI,
 	'phi': (1 + Math.sqrt(5)) / 2,
 });
 
@@ -114,12 +117,15 @@ const FUNCTIONS = Object.freeze({
 	ARCCOTH: 'arccoth',
 	ARCSECH: 'arcsech',
 	ARCCSCH: 'arccsch',
+	GAMMA: 'Gamma',
 	MIN: 'min',
 	MAX: 'max',
 	UNKNOWN: 'unknown',
 });
 
 const STRUCTURAL_FUNCTIONS = ['frac', 'sqrt'];
+
+const SPECIAL_FUNCTIONS = ['Gamma'];
 
 const FUNCTION_ALIASES = Object.freeze({
 	'sgn': 'sign',
@@ -141,39 +147,24 @@ const FUNCTION_ALIASES = Object.freeze({
 	'arccosec': 'arccsc',
 	'acosec': 'arccsc',
 
-	'sh': 'sinh',
-	'ch': 'cosh',
-	'th': 'tanh',
 	'tgh': 'tanh',
-	'cth': 'coth',
 	'ctgh': 'coth',
-	'sch': 'sech',
 	'cosech': 'csch',
 
 	// arcsinh
 	'asinh': 'arcsinh',
-	'arcsh': 'arcsinh',
-	'ash': 'arcsinh',
 	// arccosh
 	'acosh': 'arccosh',
-	'arcch': 'arccosh',
-	'ach': 'arccosh',
 	// arctanh
 	'atanh': 'arctanh',
-	'arcth': 'arctanh',
-	'ath': 'arctanh',
 	'arctgh': 'arctanh',
 	'atgh': 'arctanh',
 	// arccoth
 	'acoth': 'arccoth',
-	'arccth': 'arccoth',
-	'acth': 'arccoth',
 	'arcctgh': 'arccoth',
 	'actgh': 'arccoth',
 	// arcsech
 	'asech': 'arcsech',
-	'arcsch': 'arcsech',
-	'asch': 'arcsech',
 	// arccsch
 	'acsch': 'arccsch',
 	'arccosech': 'arccsch',
@@ -182,7 +173,7 @@ const FUNCTION_ALIASES = Object.freeze({
 
 const AUTO_OPERATOR_NAMES_FOR_MATHQUILL
 	= Object.values(FUNCTIONS)
-		.filter(f => !STRUCTURAL_FUNCTIONS.includes(f) && f !== 'unknown')
+		.filter(f => !STRUCTURAL_FUNCTIONS.includes(f) && !SPECIAL_FUNCTIONS.includes(f) && f !== 'unknown')
 		.concat(Object.keys(FUNCTION_ALIASES))
 		.join(' ');
 
@@ -224,6 +215,8 @@ function functionTokenToName(kind) {
 			return FUNCTIONS.TANH;
 		case TOKEN_KIND.COTH:
 			return FUNCTIONS.COTH;
+		case TOKEN_KIND.BIG_GAMMA:
+			return FUNCTIONS.GAMMA;
 		case TOKEN_KIND.MIN:
 			return FUNCTIONS.MIN;
 		case TOKEN_KIND.MAX:

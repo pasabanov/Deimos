@@ -40,7 +40,7 @@ function addFunction(initial) {
 
 	const field = MQ.MathField(mqHost, {
 		spaceBehavesLikeTab: true,
-		autoCommands: 'pi phi theta sqrt',
+		autoCommands: 'Gamma Delta Theta Lambda Xi Upsilon Phi Psi Omega alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi omega sqrt',
 		autoOperatorNames: AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
 	});
 	obj.field = field;
