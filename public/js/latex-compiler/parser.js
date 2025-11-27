@@ -154,6 +154,10 @@ class Parser {
 				this.get();
 				return new Node(NODE_TYPE.NUMBER, CONSTANTS['phi'], null, null);
 			}
+			case TOKEN_KIND.VARPHI: {
+				this.get();
+				return new Node(NODE_TYPE.NUMBER, CONSTANTS['varphi'], null, null);
+			}
 			case TOKEN_KIND.IDENTIFIER: {
 				this.get();
 				if (token.text === 'x') {

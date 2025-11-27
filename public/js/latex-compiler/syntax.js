@@ -27,6 +27,7 @@ const TOKEN_KIND = Object.freeze({
 	PI: '\\pi',
 	TAU: '\\tau',
 	PHI: '\\phi',
+	VARPHI: '\\varphi',
 	OPERATORNAME: '\\operatorname',
 	SQRT: '\\sqrt',
 	EXP: '\\exp',
@@ -78,6 +79,7 @@ const CONSTANTS = Object.freeze({
 	'pi': Math.PI,
 	'tau': 2 * Math.PI,
 	'phi': (1 + Math.sqrt(5)) / 2,
+	'varphi': (1 + Math.sqrt(5)) / 2,
 });
 
 const OPERATORS = Object.freeze({
