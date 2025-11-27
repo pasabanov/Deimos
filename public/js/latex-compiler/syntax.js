@@ -28,6 +28,7 @@ const TOKEN_KIND = Object.freeze({
 	TAU: '\\tau',
 	PHI: '\\phi',
 	VARPHI: '\\varphi',
+	INFTY: '\\infty',
 	OPERATORNAME: '\\operatorname',
 	SQRT: '\\sqrt',
 	EXP: '\\exp',
@@ -49,6 +50,7 @@ const TOKEN_KIND = Object.freeze({
 	COTH: '\\coth',
 	BIG_GAMMA: '\\Gamma',
 	FACTORIAL: '!',
+	BINOM: '\\binom',
 	MIN: '\\min',
 	MAX: '\\max',
 	END: 'end',
@@ -134,12 +136,15 @@ const FUNCTIONS = Object.freeze({
 	ARCSECH: 'arcsech',
 	ARCCSCH: 'arccsch',
 	GAMMA: 'Gamma',
+	LGAMMA: 'lgamma',
+	LABSGAMMA: 'labsgamma',
+	BINOM: 'binom',
 	MIN: 'min',
 	MAX: 'max',
 	UNKNOWN: 'unknown',
 });
 
-const SPECIAL_FUNCTIONS = ['frac', 'sqrt', 'root', 'Gamma'];
+const SPECIAL_FUNCTIONS = ['frac', 'sqrt', 'root', 'Gamma', 'binom'];
 
 const FUNCTION_ALIASES = Object.freeze({
 	'sgn': 'sign',

@@ -1,5 +1,7 @@
 import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@11.8.2/+esm';
 
+import { lgamma, labsgamma, binomial } from '../math/index.js';
+
 import { NODE_TYPE, OPERATORS, FUNCTIONS } from './syntax.js';
 
 function evalNode(node, x) {
@@ -86,6 +88,9 @@ function evalNode(node, x) {
 				case FUNCTIONS.ARCSECH: return Math.acosh(1 / arg1);
 				case FUNCTIONS.ARCCSCH: return Math.asinh(1 / arg1);
 				case FUNCTIONS.GAMMA: return mathjs.gamma(arg1);
+				case FUNCTIONS.LGAMMA: return lgamma(arg1);
+				case FUNCTIONS.LABSGAMMA: return labsgamma(arg1);
+				case FUNCTIONS.BINOM: return binomial(arg1, evalNode(node.args[1], x));
 				case FUNCTIONS.MIN: {
 					let min = arg1;
 					for (let i = 1; i < node.args.length; ++i) {

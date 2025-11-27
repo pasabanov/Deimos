@@ -158,6 +158,10 @@ class Parser {
 				this.get();
 				return new Node(NODE_TYPE.NUMBER, CONSTANTS['varphi'], null, null);
 			}
+			case TOKEN_KIND.INFTY: {
+				this.get();
+				return new Node(NODE_TYPE.NUMBER, Infinity, null, null);
+			}
 			case TOKEN_KIND.IDENTIFIER: {
 				this.get();
 				if (token.text === 'x') {
@@ -232,6 +236,23 @@ class Parser {
 					denominator = this.parsePrimary();
 				}
 				return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.FRAC, [numerator, denominator]);
+			}
+			case TOKEN_KIND.BINOM: {
+				this.get();
+				let n, k;
+				if (this.match(TOKEN_KIND.L_BRACE)) {
+					n = this.parseExpression();
+					this.expect(TOKEN_KIND.R_BRACE);
+				} else {
+					n = this.parsePrimary();
+				}
+				if (this.match(TOKEN_KIND.L_BRACE)) {
+					k = this.parseExpression();
+					this.expect(TOKEN_KIND.R_BRACE);
+				} else {
+					k = this.parsePrimary();
+				}
+				return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.BINOM, [n, k]);
 			}
 			case TOKEN_KIND.SQRT: {
 				this.get();
@@ -333,22 +354,32 @@ class Parser {
 	isImplicitMulAhead() {
 		const k = this.peek().kind;
 		switch (k) {
-			case TOKEN_KIND.NUMBER:
-			case TOKEN_KIND.IDENTIFIER:
-			case TOKEN_KIND.L_PARENTHESIS:
-			case TOKEN_KIND.LEFT_PARENTHESIS:
-			case TOKEN_KIND.PI:
-			case TOKEN_KIND.SIN:
-			case TOKEN_KIND.COS:
-			case TOKEN_KIND.TG:
-			case TOKEN_KIND.TAN:
-			case TOKEN_KIND.CTG:
-			case TOKEN_KIND.COT:
-			case TOKEN_KIND.LN:
-			case TOKEN_KIND.LG:
-				return true;
-			default:
+			case TOKEN_KIND.SPACE:
+			case TOKEN_KIND.ASSIGNMENT:
+			case TOKEN_KIND.COMMA:
+			case TOKEN_KIND.PLUS:
+			case TOKEN_KIND.MINUS:
+			case TOKEN_KIND.MULTIPLY:
+			case TOKEN_KIND.CDOT:
+			case TOKEN_KIND.DIVIDE:
+			case TOKEN_KIND.POWER:
+			case TOKEN_KIND.UNDERSCORE:
+			case TOKEN_KIND.R_PARENTHESIS:
+			case TOKEN_KIND.RIGHT_PARENTHESIS:
+			case TOKEN_KIND.L_BRACKET:
+			case TOKEN_KIND.R_BRACKET:
+			case TOKEN_KIND.LEFT_BRACKET:
+			case TOKEN_KIND.RIGHT_BRACKET:
+			case TOKEN_KIND.L_BRACE:
+			case TOKEN_KIND.R_BRACE:
+			case TOKEN_KIND.LEFT_BRACE:
+			case TOKEN_KIND.RIGHT_BRACE:
+			case TOKEN_KIND.FACTORIAL:
+			case TOKEN_KIND.END:
+			case TOKEN_KIND.INVALID:
 				return false;
+			default:
+				return true;
 		}
 	}
 }
