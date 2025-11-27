@@ -141,10 +141,7 @@ const FUNCTIONS = Object.freeze({
 	BINOM: 'binom',
 	MIN: 'min',
 	MAX: 'max',
-	UNKNOWN: 'unknown',
 });
-
-const SPECIAL_FUNCTIONS = ['frac', 'sqrt', 'root', 'Gamma', 'binom'];
 
 const FUNCTION_ALIASES = Object.freeze({
 	'sgn': 'sign',
@@ -190,62 +187,13 @@ const FUNCTION_ALIASES = Object.freeze({
 	'acosech': 'arccsch',
 });
 
+const NOT_OPERATOR_NAMES = ['frac', 'sqrt', 'root', 'Gamma', 'binom'];
+
 const AUTO_OPERATOR_NAMES_FOR_MATHQUILL
 	= Object.values(FUNCTIONS)
-		.filter(f => !SPECIAL_FUNCTIONS.includes(f) && f !== 'unknown')
+		.filter(f => !NOT_OPERATOR_NAMES.includes(f))
 		.concat(Object.keys(FUNCTION_ALIASES))
 		.join(' ');
-
-function functionTokenToName(kind) {
-	switch (kind) {
-		case TOKEN_KIND.FRAC:
-			return FUNCTIONS.FRAC;
-		case TOKEN_KIND.SQRT:
-			return FUNCTIONS.SQRT;
-		case TOKEN_KIND.EXP:
-			return FUNCTIONS.EXP;
-		case TOKEN_KIND.LN:
-			return FUNCTIONS.LN;
-		case TOKEN_KIND.LG:
-			return FUNCTIONS.LG;
-		case TOKEN_KIND.LOG:
-			return FUNCTIONS.LOG;
-		case TOKEN_KIND.SIN:
-			return FUNCTIONS.SIN;
-		case TOKEN_KIND.COS:
-			return FUNCTIONS.COS;
-		case TOKEN_KIND.TAN:
-			return FUNCTIONS.TAN;
-		case TOKEN_KIND.COT:
-			return FUNCTIONS.COT;
-		case TOKEN_KIND.SEC:
-			return FUNCTIONS.SEC;
-		case TOKEN_KIND.CSC:
-			return FUNCTIONS.CSC;
-		case TOKEN_KIND.ARCSIN:
-			return FUNCTIONS.ARCSIN;
-		case TOKEN_KIND.ARCCSC:
-			return FUNCTIONS.ARCCOS;
-		case TOKEN_KIND.ARCTAN:
-			return Function.ARCTAN;
-		case TOKEN_KIND.SINH:
-			return FUNCTIONS.SINH;
-		case TOKEN_KIND.COSH:
-			return FUNCTIONS.COSH;
-		case TOKEN_KIND.TANH:
-			return FUNCTIONS.TANH;
-		case TOKEN_KIND.COTH:
-			return FUNCTIONS.COTH;
-		case TOKEN_KIND.BIG_GAMMA:
-			return FUNCTIONS.GAMMA;
-		case TOKEN_KIND.MIN:
-			return FUNCTIONS.MIN;
-		case TOKEN_KIND.MAX:
-			return FUNCTIONS.MAX;
-		default:
-			return FUNCTIONS.UNKNOWN;
-	}
-}
 
 const NODE_TYPE = Object.freeze({
 	NUMBER: 'number',
@@ -264,4 +212,4 @@ class Node {
 	}
 }
 
-export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, functionTokenToName, NODE_TYPE, Node };
+export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, NODE_TYPE, Node };

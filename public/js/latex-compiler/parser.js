@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { TOKEN_KIND, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, functionTokenToName, NODE_TYPE, Node } from './syntax.js';
+import { TOKEN_KIND, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, NODE_TYPE, Node } from './syntax.js';
 
 class Parser {
 	constructor(tokens) {
@@ -264,9 +264,9 @@ class Parser {
 				}
 				const args = this.parseFuncArguments();
 				if (degree === undefined) {
-					return new Node(NODE_TYPE.FUNCTION, null, 'sqrt', args);
+					return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.SQRT, args);
 				} else {
-					return new Node(NODE_TYPE.FUNCTION, null, 'root', [degree].concat(args));
+					return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.ROOT, [degree].concat(args));
 				}
 			}
 			case TOKEN_KIND.LOG: {
@@ -285,7 +285,7 @@ class Parser {
 				if (base === undefined) {
 					base = new Node(NODE_TYPE.NUMBER, state.defaultLogBase, null, null);
 				}
-				const f = new Node(NODE_TYPE.FUNCTION, null, 'log', [base].concat(this.parseFuncArguments()));
+				const f = new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.LOG, [base].concat(this.parseFuncArguments()));
 				if (exponent !== undefined) {
 					return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.POWER, [f, exponent]);
 				} else {
@@ -319,7 +319,7 @@ class Parser {
 					this.get();
 					exponent = this.parsePrimary();
 				}
-				const f = new Node(NODE_TYPE.FUNCTION, null, functionTokenToName(token.kind), this.parseFuncArguments());
+				const f = new Node(NODE_TYPE.FUNCTION, null, token.kind.substring(1), this.parseFuncArguments());
 				if (exponent !== undefined) {
 					return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.POWER, [f, exponent]);
 				} else {
