@@ -40,9 +40,9 @@ function addFunction(initial) {
 
 	const field = MQ.MathField(mqHost, {
 		supSubsRequireOperand: true,
-		charsThatBreakOutOfSupSub: '+-*=',
+		charsThatBreakOutOfSupSub: '+-*=,;',
 		autoSubscriptNumerals: true,
-		autoCommands: 'Gamma Delta Theta Lambda Xi Upsilon Phi Psi Omega alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi omega frac sqrt nthroot',
+		autoCommands: 'Gamma Delta Theta Lambda Xi Upsilon Phi Psi Omega alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi omega infty infinity frac sqrt nthroot',
 		autoOperatorNames: AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
 	});
 	obj.field = field;

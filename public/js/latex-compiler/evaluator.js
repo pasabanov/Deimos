@@ -51,6 +51,11 @@ function evalNode(node, x) {
 				case FUNCTIONS.ROUND: return Math.round(arg1);
 				case FUNCTIONS.FLOOR: return Math.floor(arg1);
 				case FUNCTIONS.CEIL: return Math.ceil(arg1);
+				case FUNCTIONS.MOD: {
+					const divisor = evalNode(node.args[1], x);
+					return (arg1 % divisor + divisor) % divisor;
+				}
+				case FUNCTIONS.REM: return arg1 % evalNode(node.args[1], x);
 				case FUNCTIONS.EXP: return Math.exp(arg1);
 				case FUNCTIONS.LN: return Math.log(arg1);
 				case FUNCTIONS.LG: return Math.log10(arg1);

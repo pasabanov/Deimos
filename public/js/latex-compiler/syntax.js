@@ -100,6 +100,8 @@ const FUNCTIONS = Object.freeze({
 	ROUND: 'round',
 	FLOOR: 'floor',
 	CEIL: 'ceil',
+	MOD: 'mod',
+	REM: 'rem',
 	EXP: 'exp',
 	LN: 'ln',
 	LG: 'lg',
