@@ -118,8 +118,8 @@ function addFunction(initial) {
 }
 
 function initSidebar() {
-	addFunction('x');
-	addFunction('sin\\left(x\\right)');
+	addFunction();
+	state.functions[0].field.focus();
 	el.addBtn.addEventListener('click', () => addFunction(''));
 }
 

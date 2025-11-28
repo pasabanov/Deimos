@@ -260,36 +260,22 @@ function drawFunctions() {
 
 		ctx.beginPath();
 
-		let first = true;
 		const samples = Math.max(400, w);
 
 		for (let i = 0; i <= samples; ++i) {
-			const sx = i * (w / samples);
-			const { x } = screenToWorld(sx, 0);
+			const sx = w * i / samples;
+			const { x } = screenToWorld(sx, NaN);
 
 			let y;
 			try {
 				y = f.fn(x);
-				if (!isFinite(y)) {
-					y = NaN;
-				}
 			} catch (e) {
 				y = NaN;
 			}
 
-			if (isNaN(y)) {
-				first = true;
-				continue;
-			}
+			const p = worldToScreen(NaN, y);
 
-			const p = worldToScreen(x, y);
-
-			if (first) {
-				ctx.moveTo(p.x, p.y);
-				first = false;
-			} else {
-				ctx.lineTo(p.x, p.y);
-			}
+			ctx.lineTo(sx, p.y);
 		}
 
 		ctx.stroke();
