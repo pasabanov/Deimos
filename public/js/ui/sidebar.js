@@ -158,6 +158,7 @@ function initSidebar() {
 	addFunction();
 	state.functions[0].field.focus();
 	el.sidebar.addEventListener('mousedown', () => requestAnimationFrame(draw));
+	el.fnAdd.addEventListener('click', addFunction);
 }
 
 export { initSidebar, addFunction };
