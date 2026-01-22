@@ -76,6 +76,8 @@ const OPERATORS_INFO = Object.freeze({
 	[TOKEN_KIND.POWER]: { precedence: 30, associativity: 'R' },
 });
 
+const VARIABLES = Object.freeze(['x', 'y']);
+
 const CONSTANTS = Object.freeze({
 	'e': Math.E,
 	'pi': Math.PI,
@@ -83,6 +85,8 @@ const CONSTANTS = Object.freeze({
 	'phi': (1 + Math.sqrt(5)) / 2,
 	'varphi': (1 + Math.sqrt(5)) / 2,
 });
+
+const CONSTANT_NAMES = Object.freeze(Object.values(CONSTANTS));
 
 const OPERATORS = Object.freeze({
 	UNARY_PLUS: 'unary_plus',
@@ -212,4 +216,4 @@ class Node {
 	}
 }
 
-export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, NODE_TYPE, Node };
+export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, VARIABLES, CONSTANTS, CONSTANT_NAMES, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, NODE_TYPE, Node };

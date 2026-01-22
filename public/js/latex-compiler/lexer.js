@@ -1,5 +1,5 @@
 import { isWhitespace, isDigit, isAlpha } from '../utils/char-utils.js';
-import { TOKEN_KIND, TOKEN_KIND_VALUES, Token } from './syntax.js';
+import { VARIABLES, CONSTANT_NAMES, TOKEN_KIND, TOKEN_KIND_VALUES, Token } from './syntax.js';
 
 
 class Lexer {
@@ -43,12 +43,20 @@ class Lexer {
 	}
 
 	readIdentifier() {
-		const pos = this.pos;
-		let text = '';
+		const start = this.pos;
+		let current = '';
+		let lastValid = '';
 		while (isAlpha(this.peek())) {
-			text += this.get();
+			current += this.get();
+			if (VARIABLES.includes(current) || CONSTANT_NAMES.includes(current)) {
+				lastValid = current;
+			}
 		}
-		return new Token(TOKEN_KIND.IDENTIFIER, text, pos);
+		if (lastValid === '') {
+			lastValid = current;
+		}
+		this.pos = start + lastValid.length;
+		return new Token(TOKEN_KIND.IDENTIFIER, lastValid, start);
 	}
 
 	tokenize() {
@@ -63,7 +71,7 @@ class Lexer {
 			} else {
 				const start = this.pos;
 				let current = '';
-				let lastValid = TOKEN_KIND.INVALID;
+				let lastValid = '';
 				let candidates = Object.values(TOKEN_KIND).filter(k => k[0] === this.peek());
 				while (candidates.length > 0) {
 					current += this.get();
@@ -72,12 +80,13 @@ class Lexer {
 					}
 					candidates = candidates.filter(candidate => candidate.length >= current.length && candidate[current.length-1] === current[current.length-1]);
 				}
-				if (current === '') {
-					lastValid = this.get();
-				}
-				this.pos = start + lastValid.length;
-				if (lastValid != TOKEN_KIND.SPACE) {
-					tokens.push(new Token(lastValid, lastValid, start));
+				if (lastValid === '') {
+					tokens.push(new Token(TOKEN_KIND.INVALID, this.get(), start));
+				} else {
+					this.pos = start + lastValid.length;
+					if (lastValid !== TOKEN_KIND.SPACE) {
+						tokens.push(new Token(lastValid, lastValid, start));
+					}
 				}
 			}
 			this.skipWhitespace();
