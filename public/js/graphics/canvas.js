@@ -340,6 +340,7 @@ function initCanvas() {
 	resizeCanvas();
 	el.canvas.addEventListener('wheel', onWheel, { passive: false });
 	el.canvas.addEventListener('mousedown', onDown);
+	el.canvas.addEventListener('mousedown', () => requestAnimationFrame(draw));
 	window.addEventListener('mousemove', onMove);
 	window.addEventListener('mouseup', onUp);
 }

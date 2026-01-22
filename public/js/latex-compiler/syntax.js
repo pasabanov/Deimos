@@ -193,6 +193,8 @@ const FUNCTION_ALIASES = Object.freeze({
 
 const NOT_OPERATOR_NAMES = ['frac', 'sqrt', 'root', 'Gamma', 'binom'];
 
+const AUTO_COMMANDS_FOR_MATHQUILL = 'Gamma Delta Theta Lambda Xi Upsilon Phi Psi Omega alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi omega infty infinity frac sqrt nthroot binom choose';
+
 const AUTO_OPERATOR_NAMES_FOR_MATHQUILL
 	= Object.values(FUNCTIONS)
 		.filter(f => !NOT_OPERATOR_NAMES.includes(f))
@@ -216,4 +218,4 @@ class Node {
 	}
 }
 
-export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, VARIABLES, CONSTANTS, CONSTANT_NAMES, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, NODE_TYPE, Node };
+export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, VARIABLES, CONSTANTS, CONSTANT_NAMES, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_COMMANDS_FOR_MATHQUILL, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, NODE_TYPE, Node };

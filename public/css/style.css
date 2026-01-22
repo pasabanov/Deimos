@@ -72,15 +72,6 @@ body {
 	font-weight: 700;
 }
 
-#add-fn {
-	padding: 8px 12px;
-	color: #fff;
-	background: #0ea5e9;
-	border: 1px solid #334155;
-	border-radius: 8px;
-	cursor: pointer;
-}
-
 #fn-list {
 	display: flex;
 	flex-direction: column;

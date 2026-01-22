@@ -1,11 +1,11 @@
 import { state, el } from '../core/state.js';
 import { draw } from '../graphics/canvas.js';
 import { compileLatex } from '../latex-compiler/index.js';
-import { AUTO_OPERATOR_NAMES_FOR_MATHQUILL } from '../latex-compiler/syntax.js';
+import { AUTO_COMMANDS_FOR_MATHQUILL, AUTO_OPERATOR_NAMES_FOR_MATHQUILL } from '../latex-compiler/syntax.js';
 
 const MQ = window.MathQuill.getInterface(2);
 
-function addFunction(initial) {
+function addFunction() {
 	const id = crypto.randomUUID();
 	const color = state.colors[state.colorIndex % state.colors.length];
 	++state.colorIndex;
@@ -42,56 +42,90 @@ function addFunction(initial) {
 		supSubsRequireOperand: true,
 		charsThatBreakOutOfSupSub: '+-*=,;',
 		autoSubscriptNumerals: true,
-		autoCommands: 'Gamma Delta Theta Lambda Xi Upsilon Phi Psi Omega alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi omega infty infinity frac sqrt nthroot binom choose',
+		autoCommands: AUTO_COMMANDS_FOR_MATHQUILL,
 		autoOperatorNames: AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
+		handlers: {
+			edit: () => {
+				let latex = field.latex();
+				if (latex.includes('cbrt')) {
+					field.keystroke('Backspace');
+					field.keystroke('Backspace');
+					field.keystroke('Backspace');
+					field.keystroke('Backspace');
+					field.write('\\sqrt[3]{}');
+					field.keystroke('Left');
+					latex = field.latex();
+				}
+				if (!latex) {
+					obj.fn = () => NaN;
+					draw();
+					return;
+				}
+				try {
+					obj.fn = compileLatex(latex);
+				} catch (e) {
+					obj.fn = () => NaN;
+				}
+				draw();
+			},
+			enter: () => {
+				addFunction();
+				const idx = state.functions.findIndex(x => x.id === id);
+				state.functions[idx+1].field.focus();
+			},
+			moveOutOf: dir => {
+				if (state.config.moveOutOfFields) {
+					if (dir === MQ.L) {
+						const idx = state.functions.findIndex(x => x.id === id);
+						if (idx > 0) {
+							state.functions[idx-1].field.focus();
+						}
+					} else if (dir === MQ.R) {
+						const idx = state.functions.findIndex(x => x.id === id);
+						if (idx !== -1 && idx + 1 < state.functions.length) {
+							state.functions[idx+1].field.focus();
+						}
+					}
+				}
+			},
+			deleteOutOf: dir => {
+				if (dir === MQ.L) {
+					const idx = state.functions.findIndex(x => x.id === id);
+					if (idx > 0) {
+						state.functions.splice(idx, 1);
+						wrapper.remove();
+						state.functions[idx-1].field.focus();
+					}
+				}
+			},
+			upOutOf: () => {
+				const idx = state.functions.findIndex(x => x.id === id);
+				if (idx > 0) {
+					state.functions[idx-1].field.focus();
+				}
+			},
+			downOutOf: () => {
+				const idx = state.functions.findIndex(x => x.id === id);
+				if (idx !== -1 && idx + 1 < state.functions.length) {
+					state.functions[idx+1].field.focus();
+				}
+			},
+		},
 	});
 	obj.field = field;
 
-	field.el().addEventListener('focusin', () => {
+	mqHost.addEventListener('focusin', () => {
 		obj.selected = true;
 		draw();
 	});
 
-	field.el().addEventListener('focusout', () => {
+	mqHost.addEventListener('focusout', () => {
 		obj.selected = false;
-		draw();
 	});
-
-	if (initial) {
-		field.latex(initial);
-	}
-
-	function onChange() {
-		let latex = field.latex();
-		if (latex.includes('cbrt')) {
-			field.keystroke('Backspace');
-			field.keystroke('Backspace');
-			field.keystroke('Backspace');
-			field.keystroke('Backspace');
-			field.write('\\sqrt[3]{}');
-			field.keystroke('Left');
-			latex = field.latex();
-		}
-
-		if (!latex) {
-			obj.fn = () => NaN;
-			draw();
-			return;
-		}
-
-		try {
-			obj.fn = compileLatex(latex);
-		} catch (e) {
-			obj.fn = () => NaN;
-		}
-
-		draw();
-	}
-
-	field.config({ handlers: { edit: onChange } });
 
 	state.functions.push(obj);
 
+	colorDot.addEventListener('mousedown', e => e.preventDefault());
 	colorDot.addEventListener('click', () => {
 		const off = colorDot.classList.toggle('off');
 		if (off) {
@@ -105,22 +139,25 @@ function addFunction(initial) {
 		draw();
 	});
 
+	del.addEventListener('mousedown', e => e.preventDefault());
 	del.addEventListener('click', () => {
 		const idx = state.functions.findIndex(x => x.id === id);
 		if (idx >= 0) {
 			state.functions.splice(idx, 1);
+			wrapper.remove();
+			if (state.functions.length === 0) {
+				addFunction();
+				state.functions[0].field.focus();
+			}
+			draw();
 		}
-		wrapper.remove();
-		draw();
 	});
-
-	onChange();
 }
 
 function initSidebar() {
 	addFunction();
 	state.functions[0].field.focus();
-	el.addBtn.addEventListener('click', () => addFunction(''));
+	el.sidebar.addEventListener('mousedown', () => requestAnimationFrame(draw));
 }
 
 export { initSidebar, addFunction };
