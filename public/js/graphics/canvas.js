@@ -273,6 +273,12 @@ function drawFunctions() {
 				y = NaN;
 			}
 
+			if (isNaN(y)) {
+				ctx.stroke();
+				ctx.beginPath();
+				continue;
+			}
+
 			const p = worldToScreen(NaN, y);
 
 			ctx.lineTo(sx, p.y);
