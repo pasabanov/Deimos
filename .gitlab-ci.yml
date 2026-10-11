@@ -1,0 +1,11 @@
+stages:
+  - deploy
+
+deploy-pages:
+  stage: deploy
+  script:
+    - cp LICENSE public
+  pages:
+    publish: public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
