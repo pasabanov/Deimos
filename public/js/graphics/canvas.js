@@ -113,6 +113,23 @@ function drawGrid() {
 	const xStartMinor = Math.ceil(state.world.xmin / stepMinor) * stepMinor;
 	const yStartMinor = Math.ceil(state.world.ymin / stepMinor) * stepMinor;
 
+	if (
+		!Number.isFinite(stepMajor) ||
+		stepMajor <= 0 ||
+		!Number.isFinite(stepMinor) ||
+		stepMinor <= 0 ||
+		!Number.isFinite(state.world.xmin) ||
+		!Number.isFinite(state.world.xmax) ||
+		!Number.isFinite(state.world.ymin) ||
+		!Number.isFinite(state.world.ymax) ||
+		!Number.isFinite(xStartMajor) ||
+		!Number.isFinite(yStartMajor) ||
+		!Number.isFinite(xStartMinor) ||
+		!Number.isFinite(yStartMinor)
+	) {
+		return;
+	}
+
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = '#e0e0e0';
 
