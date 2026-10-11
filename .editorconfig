@@ -8,3 +8,7 @@ insert_final_newline = false
 
 [*.html]
 tab_width = 2
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
