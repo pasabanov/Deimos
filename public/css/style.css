@@ -9,6 +9,8 @@ body,
 #app {
 	width: 100%;
 	height: 100%;
+	overflow: hidden;
+	overscroll-behavior: none;
 }
 
 body {
@@ -19,9 +21,8 @@ body {
 
 #app {
 	display: grid;
-	grid-template-columns: var(--sidebar-w, 440px) auto 1fr;
+	grid-template-columns: var(--sidebar-width, 440px) auto 1fr;
 	grid-template-rows: 1fr;
-	min-height: 100vh;
 }
 
 #sidebar {
@@ -35,6 +36,7 @@ body {
 	position: relative;
 	z-index: 10;
 	width: 1px;
+	touch-action: none;
 	cursor: col-resize;
 	background: #ddd;
 }
@@ -145,7 +147,8 @@ body {
 #plot-area {
 	position: relative;
 	height: 100%;
-	min-height: 0;
+	min-width: 175px;
+	min-height: 175px;
 	background: #ffffff;
 }
 
@@ -153,6 +156,9 @@ body {
 	display: block;
 	width: 100%;
 	height: 100%;
+	min-width: 175px;
+	min-height: 175px;
+	touch-action: none;
 }
 
 #hud {
@@ -173,14 +179,44 @@ body {
 	border-radius: 6px;
 }
 
-@media (max-width: 900px) {
+@media (orientation: portrait) {
 	#app {
 		grid-template-columns: 1fr;
-		grid-template-rows: 300px 1fr;
+		grid-template-rows: 1fr 1px var(--sidebar-height, 300px);
 	}
 
 	#sidebar {
+		grid-row: 3;
+		border-top: 1px solid #e2e8f0;
 		border-right: none;
-		border-bottom: 1px solid #e2e8f0;
+	}
+
+	#resizer {
+		grid-row: 2;
+		width: auto;
+		height: 1px;
+		cursor: row-resize;
+	}
+
+	#resizer::before {
+		top: 100%;
+		right: 0;
+		bottom: auto;
+		left: 0;
+		width: auto;
+		height: 6px;
+		background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+	}
+
+	#resizer::after {
+		top: -8px;
+		right: 0;
+		bottom: -8px;
+		left: 0;
+		cursor: row-resize;
+	}
+
+	#plot-area {
+		grid-row: 1;
 	}
 }

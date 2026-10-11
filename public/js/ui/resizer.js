@@ -1,52 +1,52 @@
 import { el } from '../core/state.js';
 import { resizeCanvas } from '../graphics/canvas.js';
 
-function initSidebarResize() {
+function initResizer() {
 	let dragging = false;
-	let startX = 0;
-	let startW = 0;
+	let startPos = 0;
+	let startSize = 0;
 
-	const minSidebarW = 160;
-	const minCanvasW = 320;
+	const minSidebarSize = 175;
+	const minPlotSize = 175;
+	const resizerSize = 1;
 
-	el.resizer.addEventListener('mousedown', e => {
+	el.resizer.addEventListener('pointerdown', e => {
 		dragging = true;
-		startX = e.clientX;
-		startW = el.sidebar.getBoundingClientRect().width;
-		document.body.style.cursor = 'col-resize';
+		el.resizer.setPointerCapture(e.pointerId);
+		if (window.matchMedia('(orientation: portrait)').matches) {
+			startPos = e.clientY;
+			startSize = el.sidebar.getBoundingClientRect().height;
+		} else {
+			startPos = e.clientX;
+			startSize = el.sidebar.getBoundingClientRect().width;
+		}
 		document.body.style.userSelect = 'none';
 	});
 
-	window.addEventListener('mousemove', e => {
+	window.addEventListener('pointermove', e => {
 		if (!dragging) {
 			return;
 		}
 
-		const dx = e.clientX - startX;
-		let w = startW + dx;
+		const portrait = window.matchMedia('(orientation: portrait)');
 
-		const totalW = el.app.clientWidth;
-		const maxSidebarW = totalW - minCanvasW;
+		const pos = portrait.matches ? e.clientY : e.clientX;
+		const delta = pos - startPos;
+		const totalSize = portrait.matches ? el.app.clientHeight : el.app.clientWidth;
 
-		if (w < minSidebarW) {
-			w = minSidebarW;
-		}
-		if (w > maxSidebarW) {
-			w = maxSidebarW;
-		}
+		const maxSidebarSize = totalSize - minPlotSize - resizerSize;
+		const size = Math.max(
+			minSidebarSize,
+			Math.min(maxSidebarSize, startSize + (portrait.matches ? -delta : delta)),
+		);
 
-		el.app.style.setProperty('--sidebar-w', w + 'px');
+		el.app.style.setProperty(portrait.matches ? '--sidebar-height' : '--sidebar-width', `${size}px`);
+
 		resizeCanvas();
 	});
 
-	window.addEventListener('mouseup', () => {
-		if (!dragging) {
-			return;
-		}
-		dragging = false;
-		document.body.style.cursor = '';
-		document.body.style.userSelect = '';
-	});
+	el.resizer.addEventListener('pointerup', () => dragging = false);
+	el.resizer.addEventListener('pointercancel', () => dragging = false);
 }
 
-export { initSidebarResize };
+export { initResizer };

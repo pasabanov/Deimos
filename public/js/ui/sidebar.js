@@ -125,7 +125,7 @@ function addFunction() {
 
 	state.functions.push(obj);
 
-	colorDot.addEventListener('mousedown', e => e.preventDefault());
+	colorDot.addEventListener('pointerdown', e => e.preventDefault());
 	colorDot.addEventListener('click', () => {
 		const off = colorDot.classList.toggle('off');
 		if (off) {
@@ -139,7 +139,7 @@ function addFunction() {
 		draw();
 	});
 
-	del.addEventListener('mousedown', e => e.preventDefault());
+	del.addEventListener('pointerdown', e => e.preventDefault());
 	del.addEventListener('click', () => {
 		const idx = state.functions.findIndex(x => x.id === id);
 		if (idx >= 0) {
@@ -152,12 +152,15 @@ function addFunction() {
 			draw();
 		}
 	});
+
+	if (!window.matchMedia('(orientation: portrait)').matches) {
+		obj.field.focus();
+	}
 }
 
 function initSidebar() {
 	addFunction();
-	state.functions[0].field.focus();
-	el.sidebar.addEventListener('mousedown', () => requestAnimationFrame(draw));
+	el.sidebar.addEventListener('pointerdown', () => requestAnimationFrame(draw));
 	el.fnAdd.addEventListener('click', addFunction);
 }
 

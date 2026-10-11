@@ -329,6 +329,7 @@ function onWheel(e) {
 }
 
 function onDown(e) {
+	el.canvas.setPointerCapture(e.pointerId);
 	state.drag.active = true;
 	state.drag.x = e.clientX;
 	state.drag.y = e.clientY;
@@ -355,17 +356,18 @@ function onMove(e) {
 	draw();
 }
 
-function onUp() {
+function onUpOrCancel() {
 	state.drag.active = false;
 }
 
 function initCanvas() {
 	resizeCanvas();
 	el.canvas.addEventListener('wheel', onWheel, { passive: false });
-	el.canvas.addEventListener('mousedown', onDown);
-	el.canvas.addEventListener('mousedown', () => requestAnimationFrame(draw));
-	window.addEventListener('mousemove', onMove);
-	window.addEventListener('mouseup', onUp);
+	el.canvas.addEventListener('pointerdown', onDown);
+	el.canvas.addEventListener('pointerdown', () => requestAnimationFrame(draw));
+	window.addEventListener('pointermove', onMove);
+	window.addEventListener('pointerup', onUpOrCancel);
+	window.addEventListener('pointercancel', onUpOrCancel);
 }
 
 export { initCanvas, resizeCanvas, draw };

@@ -1,11 +1,11 @@
 import { initCanvas } from './graphics/canvas.js';
 import { initSidebar } from './ui/sidebar.js';
-import { initSidebarResize } from './ui/resizer.js';
+import { initResizer } from './ui/resizer.js';
 
 function init() {
 	initCanvas();
 	initSidebar();
-	initSidebarResize();
+	initResizer();
 }
 
 window.addEventListener('load', init);
