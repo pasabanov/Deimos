@@ -199,31 +199,35 @@ function drawGrid() {
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = '#999';
 
-	if (ox >= 0 && ox <= w) {
+	const greyYLineX = Math.round(ox) - 0.5;
+	if (greyYLineX >= 0 && greyYLineX <= w) {
 		ctx.beginPath();
-		ctx.moveTo(Math.round(ox) + 0.5, 0);
-		ctx.lineTo(Math.round(ox) + 0.5, h);
+		ctx.moveTo(greyYLineX, 0);
+		ctx.lineTo(greyYLineX, h);
 		ctx.stroke();
 	}
-	if (oy >= 0 && oy <= h) {
+	const greyXLineY = Math.round(oy) + 0.5;
+	if (greyXLineY >= 0 && greyXLineY <= h) {
 		ctx.beginPath();
-		ctx.moveTo(0, Math.round(oy) + 1.5);
-		ctx.lineTo(w, Math.round(oy) + 1.5);
+		ctx.moveTo(0, greyXLineY);
+		ctx.lineTo(w, greyXLineY);
 		ctx.stroke();
 	}
 
 	ctx.strokeStyle = '#111';
 
-	if (ox >= 0 && ox <= w) {
+	const blackYLineX = Math.round(ox) + 0.5;
+	if (blackYLineX >= 0 && blackYLineX <= w) {
 		ctx.beginPath();
-		ctx.moveTo(Math.round(ox) + 1.5, 0);
-		ctx.lineTo(Math.round(ox) + 1.5, h);
+		ctx.moveTo(blackYLineX, 0);
+		ctx.lineTo(blackYLineX, h);
 		ctx.stroke();
 	}
-	if (oy >= 0 && oy <= h) {
+	const blackXLineY = Math.round(oy) - 0.5;
+	if (blackXLineY >= 0 && blackXLineY <= h) {
 		ctx.beginPath();
-		ctx.moveTo(0, Math.round(oy) + 0.5);
-		ctx.lineTo(w, Math.round(oy) + 0.5);
+		ctx.moveTo(0, blackXLineY);
+		ctx.lineTo(w, blackXLineY);
 		ctx.stroke();
 	}
 
