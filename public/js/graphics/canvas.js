@@ -28,20 +28,32 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas);
 
+function worldToScreenX(x) {
+	const sx = (x - state.world.xmin) * (el.canvas.clientWidth / (state.world.xmax - state.world.xmin));
+	return sx;
+}
+
+function worldToScreenY(y) {
+	const sy = el.canvas.clientHeight - (y - state.world.ymin) * (el.canvas.clientHeight / (state.world.ymax - state.world.ymin));
+	return sy ;
+}
+
 function worldToScreen(x, y) {
-	const w = el.canvas.clientWidth;
-	const h = el.canvas.clientHeight;
-	const sx = (x - state.world.xmin) * (w / (state.world.xmax - state.world.xmin));
-	const sy = h - (y - state.world.ymin) * (h / (state.world.ymax - state.world.ymin));
-	return { x: sx, y: sy };
+	return { x: worldToScreenX(x), y: worldToScreenY(y) };
+}
+
+function screenToWorldX(sx) {
+	const x = state.world.xmin + (sx * (state.world.xmax - state.world.xmin)) / el.canvas.clientWidth;
+	return x;
+}
+
+function screenToWorldY(sy) {
+	const y = state.world.ymin + ((el.canvas.clientHeight - sy) * (state.world.ymax - state.world.ymin)) / el.canvas.clientHeight;
+	return y;
 }
 
 function screenToWorld(sx, sy) {
-	const w = el.canvas.clientWidth;
-	const h = el.canvas.clientHeight;
-	const x = state.world.xmin + (sx * (state.world.xmax - state.world.xmin)) / w;
-	const y = state.world.ymin + ((h - sy) * (state.world.ymax - state.world.ymin)) / h;
-	return { x, y };
+	return { x: screenToWorldX(sx), y: screenToWorldY(sy) };
 }
 
 function niceStep(raw) {
@@ -263,6 +275,9 @@ function drawGrid() {
 
 function drawFunctions() {
 	const w = el.canvas.clientWidth;
+	const h = el.canvas.clientHeight;
+
+	const cropDistance = 1e9;
 
 	for (const f of state.functions) {
 		if (!f.visible) {
@@ -278,10 +293,9 @@ function drawFunctions() {
 		ctx.beginPath();
 
 		const samples = Math.max(400, w);
-
 		for (let i = 0; i <= samples; ++i) {
 			const sx = w * i / samples;
-			const { x } = screenToWorld(sx, NaN);
+			const x = screenToWorldX(sx);
 
 			let y;
 			try {
@@ -290,15 +304,15 @@ function drawFunctions() {
 				y = NaN;
 			}
 
-			if (isNaN(y)) {
+			const sy = worldToScreenY(y);
+
+			if (!Number.isFinite(sy) || sy < -cropDistance * h || sy > (cropDistance + 1) * h) {
 				ctx.stroke();
 				ctx.beginPath();
 				continue;
 			}
 
-			const p = worldToScreen(NaN, y);
-
-			ctx.lineTo(sx, p.y);
+			ctx.lineTo(sx, sy);
 		}
 
 		ctx.stroke();
