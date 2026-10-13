@@ -313,6 +313,9 @@ function draw() {
 
 function onWheel(e) {
 	e.preventDefault();
+	if (state.drag.active) {
+		onPointerMove(e);
+	}
 	const rect = el.canvas.getBoundingClientRect();
 	const sx = e.clientX - rect.left;
 	const sy = e.clientY - rect.top;
@@ -325,18 +328,22 @@ function onWheel(e) {
 	const nymax = p.y + (state.world.ymax - p.y) * scale;
 
 	state.world = { xmin: nxmin, xmax: nxmax, ymin: nymin, ymax: nymax };
+	if (state.drag.active) {
+		onPointerDown(e);
+	}
 	draw();
 }
 
-function onDown(e) {
+function onPointerDown(e) {
 	el.canvas.setPointerCapture(e.pointerId);
 	state.drag.active = true;
 	state.drag.x = e.clientX;
 	state.drag.y = e.clientY;
 	state.drag.worldStart = { ...state.world };
+	requestAnimationFrame(draw);
 }
 
-function onMove(e) {
+function onPointerMove(e) {
 	if (!state.drag.active) {
 		return;
 	}
@@ -363,9 +370,8 @@ function onUpOrCancel() {
 function initCanvas() {
 	resizeCanvas();
 	el.canvas.addEventListener('wheel', onWheel, { passive: false });
-	el.canvas.addEventListener('pointerdown', onDown);
-	el.canvas.addEventListener('pointerdown', () => requestAnimationFrame(draw));
-	window.addEventListener('pointermove', onMove);
+	el.canvas.addEventListener('pointerdown', onPointerDown);
+	window.addEventListener('pointermove', onPointerMove);
 	window.addEventListener('pointerup', onUpOrCancel);
 	window.addEventListener('pointercancel', onUpOrCancel);
 }
