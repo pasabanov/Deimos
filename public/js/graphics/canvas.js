@@ -234,20 +234,29 @@ function drawGrid() {
 	ctx.textBaseline = 'top';
 	ctx.textAlign = 'center';
 
-	const yAxisScreen = oy >= 0 && oy <= h ? Math.round(oy) + 6 : (oy < 0 ? 4 : h - 16);
+	const xTickPadding = 6;
 
 	for (let x = xStartMajor; x <= state.world.xmax + 1e-12; x += stepMajor) {
 		if (Math.abs(x) < stepMajor * 1e-9) {
 			continue;
 		}
 		const p = worldToScreen(x, 0);
-		if (p.x < -20 || p.x > w + 20) {
-			continue;
-		}
 		const label = formatTick(x, stepMajor);
 		let drawX = Math.round(p.x);
 		if (label[0] === '-') {
 			drawX -= ctx.measureText('-').width / 2;
+		}
+		const metrics = ctx.measureText(label);
+		const left = drawX - metrics.actualBoundingBoxLeft;
+		const right = drawX + metrics.actualBoundingBoxRight;
+		if (left < 0 || right > w) {
+			continue;
+		}
+		let yAxisScreen = oy - metrics.actualBoundingBoxAscent + xTickPadding;
+		if (yAxisScreen < xTickPadding) {
+			yAxisScreen = xTickPadding;
+		} else if (yAxisScreen > h - metrics.actualBoundingBoxDescent - xTickPadding) {
+			yAxisScreen = h - metrics.actualBoundingBoxDescent - xTickPadding;
 		}
 		ctx.strokeText(label, drawX, yAxisScreen);
 		ctx.fillText(label, drawX, yAxisScreen);
@@ -256,18 +265,27 @@ function drawGrid() {
 	ctx.textAlign = 'right';
 	ctx.textBaseline = 'middle';
 
-	const xAxisScreen = ox >= 0 && ox <= w ? Math.round(ox) - 3 : (ox < 0 ? 16 : w - 3);
+	const yTickPadding = 3;
 
 	for (let y = yStartMajor; y <= state.world.ymax + 1e-12; y += stepMajor) {
 		if (Math.abs(y) < stepMajor * 1e-9) {
 			continue;
 		}
 		const p = worldToScreen(0, y);
-		if (p.y < -20 || p.y > h + 20) {
-			continue;
-		}
 		const label = formatTick(y, stepMajor);
 		const drawY = Math.round(p.y) + 0.5;
+		const metrics = ctx.measureText(label);
+		const top = drawY - (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2;
+		const bottom = drawY + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2;
+		if (top < 0 || bottom > h) {
+			continue;
+		}
+		let xAxisScreen = ox - yTickPadding;
+		if (xAxisScreen < metrics.actualBoundingBoxLeft + yTickPadding) {
+			xAxisScreen = metrics.actualBoundingBoxLeft + yTickPadding;
+		} else if (xAxisScreen > w - yTickPadding) {
+			xAxisScreen = w - yTickPadding;
+		}
 		ctx.strokeText(label, xAxisScreen, drawY);
 		ctx.fillText(label, xAxisScreen, drawY);
 	}
