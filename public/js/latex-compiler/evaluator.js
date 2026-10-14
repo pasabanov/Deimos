@@ -42,7 +42,16 @@ function evalNode(node, x) {
 						if (degree === 3) {
 							return Math.cbrt(arg);
 						}
-						if (arg < 0 && degree % 2 === 1) {
+						if (degree === -1) {
+							return 1 / arg;
+						}
+						if (degree === -2) {
+							return 1 / Math.sqrt(arg);
+						}
+						if (degree === -3) {
+							return 1 / Math.cbrt(arg);
+						}
+						if (arg < 0 && degree % 2 !== 0) {
 							return -Math.pow(-arg, 1 / degree);
 						}
 					}
