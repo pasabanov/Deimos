@@ -354,12 +354,10 @@ function handleZoom(clientX, clientY, delta) {
 	const p = screenToWorld(sx, sy);
 	const scale = delta < 0 ? 1 / 1.1 : 1.1;
 
-	const nxmin = p.x + (state.world.xmin - p.x) * scale;
-	const nxmax = p.x + (state.world.xmax - p.x) * scale;
-	const nymin = p.y + (state.world.ymin - p.y) * scale;
-	const nymax = p.y + (state.world.ymax - p.y) * scale;
-
-	state.world = { xmin: nxmin, xmax: nxmax, ymin: nymin, ymax: nymax };
+	state.world.xmin = p.x + (state.world.xmin - p.x) * scale;
+	state.world.xmax = p.x + (state.world.xmax - p.x) * scale;
+	state.world.ymin = p.y + (state.world.ymin - p.y) * scale;
+	state.world.ymax = p.y + (state.world.ymax - p.y) * scale;
 }
 
 function handleDragInit(clientX, clientY) {
@@ -389,8 +387,63 @@ function handleDrag(clientX, clientY) {
 	state.world.ymax = state.drag.worldStart.ymax + ddy;
 }
 
+function handlePinchInit() {
+	const rect = el.canvas.getBoundingClientRect();
+	const dx = state.pinch.pointer2.x - state.pinch.pointer1.x;
+	const dy = state.pinch.pointer2.y - state.pinch.pointer1.y;
+	const startMidX = (state.pinch.pointer1.x + state.pinch.pointer2.x) / 2;
+	const startMidY = (state.pinch.pointer1.y + state.pinch.pointer2.y) / 2;
+	const p = screenToWorld(startMidX - rect.left, startMidY - rect.top);
+
+	state.drag.active = false;
+
+	state.pinch.active = true;
+	state.pinch.startDistance = Math.hypot(dx, dy);
+	state.pinch.worldStart.xmin = state.world.xmin;
+	state.pinch.worldStart.xmax = state.world.xmax;
+	state.pinch.worldStart.ymin = state.world.ymin;
+	state.pinch.worldStart.ymax = state.world.ymax;
+	state.pinch.anchorX = p.x;
+	state.pinch.anchorY = p.y;
+}
+
+function handlePinch() {
+	const rect = el.canvas.getBoundingClientRect();
+	if (rect.width === 0 || rect.height === 0) {
+		return;
+	}
+
+	const dx = state.pinch.pointer2.x - state.pinch.pointer1.x;
+	const dy = state.pinch.pointer2.y - state.pinch.pointer1.y;
+	const distance = Math.hypot(dx, dy);
+
+	if (distance === 0 || state.pinch.startDistance === 0) {
+		return;
+	}
+
+	const scale = state.pinch.startDistance / distance;
+	const midX = (state.pinch.pointer1.x + state.pinch.pointer2.x) / 2 - rect.left;
+	const midY = (state.pinch.pointer1.y + state.pinch.pointer2.y) / 2 - rect.top;
+
+	const worldWidth = (state.pinch.worldStart.xmax - state.pinch.worldStart.xmin) * scale;
+	const worldHeight = (state.pinch.worldStart.ymax - state.pinch.worldStart.ymin) * scale;
+
+	const nxmin = state.pinch.anchorX - midX / rect.width * worldWidth;
+	const nxmax = nxmin + worldWidth;
+	const nymax = state.pinch.anchorY + midY / rect.height * worldHeight;
+	const nymin = nymax - worldHeight;
+
+	state.world.xmin = nxmin;
+	state.world.xmax = nxmax;
+	state.world.ymin = nymin;
+	state.world.ymax = nymax;
+}
+
 function onWheel(e) {
 	e.preventDefault();
+	if (state.pinch.active) {
+		return;
+	}
 	if (state.drag.active) {
 		handleDrag(e.clientX, e.clientY);
 	}
@@ -398,25 +451,73 @@ function onWheel(e) {
 	if (state.drag.active) {
 		handleDragInit(e.clientX, e.clientY);
 	}
-	draw();
+	requestAnimationFrame(draw);
 }
 
 function onPointerDown(e) {
 	el.canvas.setPointerCapture(e.pointerId);
-	handleDragInit(e.clientX, e.clientY);
+	if (state.pinch.active) {
+		return;
+	}
+	if (state.pinch.pointer1.id === -1) {
+		state.pinch.pointer1.id = e.pointerId;
+		state.pinch.pointer1.x = e.clientX;
+		state.pinch.pointer1.y = e.clientY;
+		handleDragInit(e.clientX, e.clientY);
+	} else {
+		if (e.pointerId === state.pinch.pointer1.id || state.pinch.pointer2.id !== -1) {
+			return;
+		}
+		state.pinch.pointer2.id = e.pointerId;
+		state.pinch.pointer2.x = e.clientX;
+		state.pinch.pointer2.y = e.clientY;
+		handlePinchInit();
+	}
 	requestAnimationFrame(draw);
 }
 
 function onPointerMove(e) {
-	if (!state.drag.active) {
+	if (e.pointerId === state.pinch.pointer1.id) {
+		state.pinch.pointer1.x = e.clientX;
+		state.pinch.pointer1.y = e.clientY;
+	} else if (e.pointerId === state.pinch.pointer2.id) {
+		state.pinch.pointer2.x = e.clientX;
+		state.pinch.pointer2.y = e.clientY;
+	} else {
 		return;
 	}
-	handleDrag(e.clientX, e.clientY);
-	draw();
+	if (state.pinch.active) {
+		handlePinch();
+	} else {
+		handleDrag(e.clientX, e.clientY);
+	}
+	requestAnimationFrame(draw);
 }
 
-function onUpOrCancel() {
-	state.drag.active = false;
+function onUpOrCancel(e) {
+	if (state.pinch.active) {
+		if (e.pointerId !== state.pinch.pointer1.id && e.pointerId !== state.pinch.pointer2.id) {
+			return;
+		}
+		if (e.pointerId === state.pinch.pointer1.id) {
+			state.pinch.pointer1.id = state.pinch.pointer2.id;
+			state.pinch.pointer1.x = state.pinch.pointer2.x;
+			state.pinch.pointer1.y = state.pinch.pointer2.y;
+		}
+		state.pinch.active = false;
+		state.pinch.pointer2.id = -1;
+		state.pinch.pointer2.x = NaN;
+		state.pinch.pointer2.y = NaN;
+		handleDragInit(state.pinch.pointer1.x, state.pinch.pointer1.y);
+		requestAnimationFrame(draw);
+		return;
+	}
+	if (e.pointerId === state.pinch.pointer1.id) {
+		state.drag.active = false;
+		state.pinch.pointer1.id = -1;
+		state.pinch.pointer1.x = NaN;
+		state.pinch.pointer1.y = NaN;
+	}
 }
 
 function initCanvas() {
