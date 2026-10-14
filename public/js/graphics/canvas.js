@@ -56,31 +56,9 @@ function screenToWorld(sx, sy) {
 	return { x: screenToWorldX(sx), y: screenToWorldY(sy) };
 }
 
-function niceStep(raw) {
-	const pow10 = Math.pow(10, Math.floor(Math.log10(raw)));
-	const n = raw / pow10;
-	let step;
-	if (n < 1.5) {
-		step = 1;
-	} else if (n < 3) {
-		step = 2;
-	} else if (n < 7) {
-		step = 5;
-	} else {
-		step = 10;
-	}
-	return step * pow10;
-}
-
-function round(v) {
-	const s = state.world.xmax - state.world.xmin;
-	const d = Math.max(0, 2 - Math.floor(Math.log10(Math.max(1e-9, s))));
-	return Number(v.toFixed(d));
-}
-
 function computeGridStep(ppu) {
 	const targetPx = 70;
-	const raw = targetPx / Math.max(1e-12, ppu);
+	const raw = targetPx / ppu;
 	const pow10 = Math.pow(10, Math.floor(Math.log10(raw)));
 	const n = raw / pow10;
 	let base;
@@ -94,6 +72,12 @@ function computeGridStep(ppu) {
 		base = 10;
 	}
 	return { step: base * pow10, base };
+}
+
+function formatBoundary(v) {
+	const s = state.world.xmax - state.world.xmin;
+	const d = Math.max(0, 2 - Math.floor(Math.log10(Math.max(1e-9, s))));
+	return Number(v.toFixed(d));
 }
 
 function formatTick(v, step) {
@@ -118,6 +102,7 @@ function drawGrid() {
 	const { step: stepMajor, base } = computeGridStep(ppu);
 	const minors = base === 2 ? 3 : 4;
 	const stepMinor = stepMajor / (minors + 1);
+	const epsilon = 1e-9 * stepMinor;
 
 	const xStartMajor = Math.ceil(state.world.xmin / stepMajor) * stepMajor;
 	const yStartMajor = Math.ceil(state.world.ymin / stepMajor) * stepMajor;
@@ -125,27 +110,12 @@ function drawGrid() {
 	const xStartMinor = Math.ceil(state.world.xmin / stepMinor) * stepMinor;
 	const yStartMinor = Math.ceil(state.world.ymin / stepMinor) * stepMinor;
 
-	if (
-		!Number.isFinite(stepMajor) ||
-		stepMajor <= 0 ||
-		!Number.isFinite(stepMinor) ||
-		stepMinor <= 0 ||
-		!Number.isFinite(state.world.xmin) ||
-		!Number.isFinite(state.world.xmax) ||
-		!Number.isFinite(state.world.ymin) ||
-		!Number.isFinite(state.world.ymax) ||
-		!Number.isFinite(xStartMajor) ||
-		!Number.isFinite(yStartMajor) ||
-		!Number.isFinite(xStartMinor) ||
-		!Number.isFinite(yStartMinor)
-	) {
-		return;
-	}
+	const loopLimit = 1000;
 
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = '#e0e0e0';
 
-	for (let x = xStartMinor; x <= state.world.xmax + 1e-12; x += stepMinor) {
+	for (let x = xStartMinor, loop = 0; x <= state.world.xmax + epsilon && loop < loopLimit; x += stepMinor, ++loop) {
 		const k = Math.round((x - xStartMajor) / stepMajor);
 		const isMajorAligned = Math.abs(x - (xStartMajor + k * stepMajor)) <= stepMinor * 0.5e-3;
 		if (isMajorAligned) {
@@ -159,7 +129,7 @@ function drawGrid() {
 		ctx.stroke();
 	}
 
-	for (let y = yStartMinor; y <= state.world.ymax + 1e-12; y += stepMinor) {
+	for (let y = yStartMinor, loop = 0; y <= state.world.ymax + epsilon && loop < loopLimit; y += stepMinor, ++loop) {
 		const k = Math.round((y - yStartMajor) / stepMajor);
 		const isMajorAligned = Math.abs(y - (yStartMajor + k * stepMajor)) <= stepMinor * 0.5e-3;
 		if (isMajorAligned) {
@@ -175,7 +145,7 @@ function drawGrid() {
 
 	ctx.strokeStyle = '#999';
 
-	for (let x = xStartMajor; x <= state.world.xmax + 1e-12; x += stepMajor) {
+	for (let x = xStartMajor, loop = 0; x <= state.world.xmax + epsilon && loop < loopLimit; x += stepMajor, ++loop) {
 		const p1 = worldToScreen(x, state.world.ymin);
 		const p2 = worldToScreen(x, state.world.ymax);
 		ctx.beginPath();
@@ -184,7 +154,7 @@ function drawGrid() {
 		ctx.stroke();
 	}
 
-	for (let y = yStartMajor; y <= state.world.ymax + 1e-12; y += stepMajor) {
+	for (let y = yStartMajor, loop = 0; y <= state.world.ymax + epsilon && loop < loopLimit; y += stepMajor, ++loop) {
 		const p1 = worldToScreen(state.world.xmin, y);
 		const p2 = worldToScreen(state.world.xmax, y);
 		ctx.beginPath();
@@ -240,7 +210,7 @@ function drawGrid() {
 
 	const xTickPadding = 6;
 
-	for (let x = xStartMajor; x <= state.world.xmax + 1e-12; x += stepMajor) {
+	for (let x = xStartMajor, loop = 0; x <= state.world.xmax + epsilon && loop < loopLimit; x += stepMajor, ++loop) {
 		if (Math.abs(x) < stepMajor * 1e-9) {
 			continue;
 		}
@@ -271,7 +241,7 @@ function drawGrid() {
 
 	const yTickPadding = 3;
 
-	for (let y = yStartMajor; y <= state.world.ymax + 1e-12; y += stepMajor) {
+	for (let y = yStartMajor, loop = 0; y <= state.world.ymax + epsilon && loop < loopLimit; y += stepMajor, ++loop) {
 		if (Math.abs(y) < stepMajor * 1e-9) {
 			continue;
 		}
@@ -344,7 +314,7 @@ function drawFunctions() {
 function draw() {
 	drawGrid();
 	drawFunctions();
-	el.ranges.textContent = `x: [${round(state.world.xmin)}, ${round(state.world.xmax)}]  y: [${round(state.world.ymin)}, ${round(state.world.ymax)}]`;
+	el.ranges.textContent = `x: [${formatBoundary(state.world.xmin)}, ${formatBoundary(state.world.xmax)}]  y: [${formatBoundary(state.world.ymin)}, ${formatBoundary(state.world.ymax)}]`;
 }
 
 function handleZoom(clientX, clientY, delta) {
@@ -428,15 +398,10 @@ function handlePinch() {
 	const worldWidth = (state.pinch.worldStart.xmax - state.pinch.worldStart.xmin) * scale;
 	const worldHeight = (state.pinch.worldStart.ymax - state.pinch.worldStart.ymin) * scale;
 
-	const nxmin = state.pinch.anchorX - midX / rect.width * worldWidth;
-	const nxmax = nxmin + worldWidth;
-	const nymax = state.pinch.anchorY + midY / rect.height * worldHeight;
-	const nymin = nymax - worldHeight;
-
-	state.world.xmin = nxmin;
-	state.world.xmax = nxmax;
-	state.world.ymin = nymin;
-	state.world.ymax = nymax;
+	state.world.xmin = state.pinch.anchorX - midX / rect.width * worldWidth;
+	state.world.xmax = state.world.xmin + worldWidth;
+	state.world.ymax = state.pinch.anchorY + midY / rect.height * worldHeight;
+	state.world.ymin = state.world.ymax - worldHeight;
 }
 
 function onWheel(e) {
