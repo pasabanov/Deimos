@@ -17,8 +17,8 @@ const state = {
 	config: {
 		moveOutOfFields: false,
 		samplesPerPixel: 3,
-		preSamples: 2,
-		postSamples: 1,
+		preSamples: 3,
+		postSamples: 2,
 		cropDistance: 1e9,
 		trustedDistance: 0,
 	},

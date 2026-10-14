@@ -292,7 +292,7 @@ function computeFunctionScreenValues(f, w, samples, visibleSamples, preSamples, 
 	}
 }
 
-function drawFunction(f, w, visibleSamples, preSamples, trustedTop, trustedBottom) {
+function drawFunction(f, w, visibleSamples, preSamples, postSamples, trustedTop, trustedBottom) {
 	ctx.strokeStyle = f.color;
 	ctx.lineWidth = f.selected ? 3.5 : 2.5;
 
@@ -307,17 +307,25 @@ function drawFunction(f, w, visibleSamples, preSamples, trustedTop, trustedBotto
 			continue;
 		}
 
-		const prevPrev = f.screenValues[i-2];
-		const prev = f.screenValues[i-1];
-		const next = f.screenValues[i+1];
-
-		if (prevPrev > prev && prev < trustedTop && trustedBottom < sy && sy > next) {
-			drawing = false;
-			continue;
-		}
-		if (prevPrev < prev && prev > trustedBottom && trustedTop > sy && sy < next) {
-			drawing = false;
-			continue;
+		if (preSamples > 1 && postSamples > 0) {
+			for (const direction of [-1, 1]) {
+				let monotonic = true;
+				for (let j = 1; j < preSamples && monotonic; ++j) {
+					monotonic = direction * (f.screenValues[i-j-1] - f.screenValues[i-j]) > 0;
+				}
+				for (let j = 0; j < postSamples && monotonic; ++j) {
+					monotonic = direction * (f.screenValues[i+j] - f.screenValues[i+j+1]) > 0;
+				}
+				if (monotonic
+					&& (direction > 0
+						? f.screenValues[i-1] < trustedTop && trustedBottom < sy
+						: f.screenValues[i-1] > trustedBottom && trustedTop > sy
+					)
+				) {
+					drawing = false;
+					break;
+				}
+			}
 		}
 
 		if (drawing) {
@@ -361,11 +369,11 @@ function drawFunctions() {
 			selectedIndex = i;
 			continue;
 		}
-		drawFunction(f, w, visibleSamples, state.config.preSamples, trustedTop, trustedBottom);
+		drawFunction(f, w, visibleSamples, state.config.preSamples, state.config.postSamples, trustedTop, trustedBottom);
 	}
 
 	if (selectedIndex !== -1) {
-		drawFunction(state.functions[selectedIndex], w, visibleSamples, state.config.preSamples, trustedTop, trustedBottom);
+		drawFunction(state.functions[selectedIndex], w, visibleSamples, state.config.preSamples, state.config.postSamples, trustedTop, trustedBottom);
 	}
 }
 
