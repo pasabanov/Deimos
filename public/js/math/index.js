@@ -34,16 +34,17 @@ function binomial(x, y) {
 	if (y === 2 || y === x - 2) {
 		return x * (x - 1) / 2;
 	}
-	if (Number.isInteger(x) && Number.isInteger(y)) {
+	if (Number.isSafeInteger(x) && Number.isSafeInteger(y)) {
 		if (y < 0 || y > x) {
 			return 0;
 		}
-		y = Math.min(y, x - y);
-		let result = 1;
-		for (let i = 0; i < y; ++i) {
-			result = result * (x - i) / (i + 1);
+		if (Math.min(y, x - y) <= 1000) {
+			let result = 1;
+			for (let i = Math.min(y, x - y); i > 0; --i) {
+				result = result * (x - i + 1) / i;
+			}
+			return result;
 		}
-		return result;
 	}
 	const sign = gammaSign(x + 1) * gammaSign(y + 1) * gammaSign(x - y + 1);
 	const logValue = labsgamma(x + 1) - labsgamma(y + 1) - labsgamma(x - y + 1);
