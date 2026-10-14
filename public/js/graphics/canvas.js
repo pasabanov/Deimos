@@ -347,16 +347,12 @@ function draw() {
 	el.ranges.textContent = `x: [${round(state.world.xmin)}, ${round(state.world.xmax)}]  y: [${round(state.world.ymin)}, ${round(state.world.ymax)}]`;
 }
 
-function onWheel(e) {
-	e.preventDefault();
-	if (state.drag.active) {
-		onPointerMove(e);
-	}
+function handleZoom(clientX, clientY, delta) {
 	const rect = el.canvas.getBoundingClientRect();
-	const sx = e.clientX - rect.left;
-	const sy = e.clientY - rect.top;
+	const sx = clientX - rect.left;
+	const sy = clientY - rect.top;
 	const p = screenToWorld(sx, sy);
-	const scale = e.deltaY < 0 ? 1 / 1.1 : 1.1;
+	const scale = delta < 0 ? 1 / 1.1 : 1.1;
 
 	const nxmin = p.x + (state.world.xmin - p.x) * scale;
 	const nxmax = p.x + (state.world.xmax - p.x) * scale;
@@ -364,18 +360,50 @@ function onWheel(e) {
 	const nymax = p.y + (state.world.ymax - p.y) * scale;
 
 	state.world = { xmin: nxmin, xmax: nxmax, ymin: nymin, ymax: nymax };
+}
+
+function handleDragInit(clientX, clientY) {
+	state.drag.active = true;
+	state.drag.x = clientX;
+	state.drag.y = clientY;
+	state.drag.worldStart.xmin = state.world.xmin;
+	state.drag.worldStart.xmax = state.world.xmax;
+	state.drag.worldStart.ymin = state.world.ymin;
+	state.drag.worldStart.ymax = state.world.ymax;
+}
+
+function handleDrag(clientX, clientY) {
+	if (!state.drag.active) {
+		return;
+	}
+	const dx = clientX - state.drag.x;
+	const dy = clientY - state.drag.y;
+	const p1 = screenToWorld(0, 0);
+	const p2 = screenToWorld(dx, dy);
+	const ddx = p1.x - p2.x;
+	const ddy = p1.y - p2.y;
+
+	state.world.xmin = state.drag.worldStart.xmin + ddx;
+	state.world.xmax = state.drag.worldStart.xmax + ddx;
+	state.world.ymin = state.drag.worldStart.ymin + ddy;
+	state.world.ymax = state.drag.worldStart.ymax + ddy;
+}
+
+function onWheel(e) {
+	e.preventDefault();
 	if (state.drag.active) {
-		onPointerDown(e);
+		handleDrag(e.clientX, e.clientY);
+	}
+	handleZoom(e.clientX, e.clientY, e.deltaY);
+	if (state.drag.active) {
+		handleDragInit(e.clientX, e.clientY);
 	}
 	draw();
 }
 
 function onPointerDown(e) {
 	el.canvas.setPointerCapture(e.pointerId);
-	state.drag.active = true;
-	state.drag.x = e.clientX;
-	state.drag.y = e.clientY;
-	state.drag.worldStart = { ...state.world };
+	handleDragInit(e.clientX, e.clientY);
 	requestAnimationFrame(draw);
 }
 
@@ -383,19 +411,7 @@ function onPointerMove(e) {
 	if (!state.drag.active) {
 		return;
 	}
-	const dx = e.clientX - state.drag.x;
-	const dy = e.clientY - state.drag.y;
-	const p1 = screenToWorld(0, 0);
-	const p2 = screenToWorld(dx, dy);
-	const ddx = p1.x - p2.x;
-	const ddy = p1.y - p2.y;
-
-	state.world = {
-		xmin: state.drag.worldStart.xmin + ddx,
-		xmax: state.drag.worldStart.xmax + ddx,
-		ymin: state.drag.worldStart.ymin + ddy,
-		ymax: state.drag.worldStart.ymax + ddy,
-	};
+	handleDrag(e.clientX, e.clientY);
 	draw();
 }
 
