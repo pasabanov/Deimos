@@ -7,8 +7,8 @@ const MQ = window.MathQuill.getInterface(2);
 
 function addFunction() {
 	const id = crypto.randomUUID();
-	const color = state.colors[state.colorIndex % state.colors.length];
-	++state.colorIndex;
+	const color = state.colors[state.colorIndex];
+	state.colorIndex = (state.colorIndex + 1) % state.colors.length;
 
 	const wrapper = document.createElement('div');
 	wrapper.className = 'fn-item';
