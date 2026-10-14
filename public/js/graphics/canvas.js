@@ -265,92 +265,107 @@ function drawGrid() {
 	}
 }
 
+function computeFunctionScreenValues(f, w, samples, visibleSamples, preSamples, cropTop, cropBottom) {
+	if (!f.screenValues || f.screenValues.length < samples) {
+		f.screenValues = new Float64Array(samples);
+	}
+
+	for (let i = 0; i < samples; ++i) {
+		const sx = w * (i - preSamples) / visibleSamples;
+		const x = screenToWorldX(sx);
+
+		let y;
+		try {
+			y = f.fn(x);
+		} catch {
+			y = NaN;
+		}
+
+		let sy = worldToScreenY(y);
+		if (sy < cropTop) {
+			sy = -Infinity;
+		} else if (sy > cropBottom) {
+			sy = Infinity;
+		}
+
+		f.screenValues[i] = sy;
+	}
+}
+
+function drawFunction(f, w, visibleSamples, preSamples, trustedTop, trustedBottom) {
+	ctx.strokeStyle = f.color;
+	ctx.lineWidth = f.selected ? 3.5 : 2.5;
+
+	ctx.beginPath();
+	let drawing = false;
+	for (let i = preSamples; i < visibleSamples + preSamples; ++i) {
+		const sx = w * (i - preSamples) / visibleSamples;
+		const sy = f.screenValues[i];
+
+		if (!Number.isFinite(sy)) {
+			drawing = false;
+			continue;
+		}
+
+		const prevPrev = f.screenValues[i-2];
+		const prev = f.screenValues[i-1];
+		const next = f.screenValues[i+1];
+
+		if (prevPrev > prev && prev < trustedTop && trustedBottom < sy && sy > next) {
+			drawing = false;
+			continue;
+		}
+		if (prevPrev < prev && prev > trustedBottom && trustedTop > sy && sy < next) {
+			drawing = false;
+			continue;
+		}
+
+		if (drawing) {
+			ctx.lineTo(sx, sy);
+		} else {
+			ctx.moveTo(sx, sy);
+			drawing = true;
+		}
+	}
+	ctx.stroke();
+}
+
 function drawFunctions() {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
 
-	const samplesPerPixel = 3;
-	const visibleSamples = samplesPerPixel * w;
-	const preSamples = 2;
-	const postSamples = 1;
+	const visibleSamples = state.config.samplesPerPixel * w;
+	const samples = visibleSamples + state.config.preSamples + state.config.postSamples;
 
-	const samples = visibleSamples + preSamples + postSamples;
+	const cropTop = -state.config.cropDistance * h;
+	const cropBottom = (state.config.cropDistance + 1) * h;
 
-	const cropDistance = 1e9;
-	const cropTop = -cropDistance * h;
-	const cropBottom = (cropDistance + 1) * h;
-
-	const trustedDistance = 0;
-	const trustedTop = -trustedDistance * h;
-	const trustedBottom = (trustedDistance + 1) * h;
+	const trustedTop = -state.config.trustedDistance * h;
+	const trustedBottom = (state.config.trustedDistance + 1) * h;
 
 	for (const f of state.functions) {
 		if (!f.visible) {
 			continue;
 		}
-		ctx.strokeStyle = f.color;
-		ctx.lineWidth = 2.5;
+		computeFunctionScreenValues(f, w, samples, visibleSamples, state.config.preSamples, cropTop, cropBottom);
+	}
 
+	let selectedIndex = -1;
+
+	for (let i = 0; i < state.functions.length; ++i) {
+		const f = state.functions[i];
+		if (!f.visible) {
+			continue;
+		}
 		if (f.selected) {
-			ctx.lineWidth += 1;
+			selectedIndex = i;
+			continue;
 		}
+		drawFunction(f, w, visibleSamples, state.config.preSamples, trustedTop, trustedBottom);
+	}
 
-		if (!f.screenValues || f.screenValues.length < samples) {
-			f.screenValues = new Float64Array(samples);
-		}
-
-		for (let i = 0; i < samples; ++i) {
-			const sx = w * (i - preSamples) / visibleSamples;
-			const x = screenToWorldX(sx);
-
-			let y;
-			try {
-				y = f.fn(x);
-			} catch {
-				y = NaN;
-			}
-
-			let sy = worldToScreenY(y);
-			if (sy < cropTop) {
-				sy = -Infinity;
-			} else if (sy > cropBottom) {
-				sy = Infinity;
-			}
-
-			f.screenValues[i] = sy;
-		}
-
-		ctx.beginPath();
-		let drawing = false;
-		for (let i = preSamples; i < samples - postSamples; ++i) {
-			const sx = w * (i - preSamples) / visibleSamples;
-			const sy = f.screenValues[i];
-
-			if (!Number.isFinite(sy)) {
-				drawing = false;
-				continue;
-			}
-
-			const prevPrev = f.screenValues[i-2];
-			const prev = f.screenValues[i-1];
-			const next = f.screenValues[i+1];
-			if (prevPrev > prev && prev < trustedTop && trustedBottom < sy && sy > next) {
-				drawing = false;
-				continue;
-			}
-			if (prevPrev < prev && prev > trustedBottom && trustedTop > sy && sy < next) {
-				drawing = false;
-				continue;
-			}
-
-			if (drawing) {
-				ctx.lineTo(sx, sy);
-			} else {
-				ctx.moveTo(sx, sy);
-				drawing = true;
-			}
-		}
-		ctx.stroke();
+	if (selectedIndex !== -1) {
+		drawFunction(state.functions[selectedIndex], w, visibleSamples, state.config.preSamples, trustedTop, trustedBottom);
 	}
 }
 
