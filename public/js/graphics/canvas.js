@@ -356,7 +356,7 @@ function onWheel(e) {
 	const sx = e.clientX - rect.left;
 	const sy = e.clientY - rect.top;
 	const p = screenToWorld(sx, sy);
-	const scale = e.deltaY < 0 ? 0.9 : 1.1;
+	const scale = e.deltaY < 0 ? 1 / 1.1 : 1.1;
 
 	const nxmin = p.x + (state.world.xmin - p.x) * scale;
 	const nxmax = p.x + (state.world.xmax - p.x) * scale;
