@@ -269,7 +269,20 @@ function drawFunctions() {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
 
+	const samplesPerPixel = 3;
+	const visibleSamples = samplesPerPixel * w;
+	const preSamples = 2;
+	const postSamples = 1;
+
+	const samples = visibleSamples + preSamples + postSamples;
+
 	const cropDistance = 1e9;
+	const cropTop = -cropDistance * h;
+	const cropBottom = (cropDistance + 1) * h;
+
+	const trustedDistance = 0;
+	const trustedTop = -trustedDistance * h;
+	const trustedBottom = (trustedDistance + 1) * h;
 
 	for (const f of state.functions) {
 		if (!f.visible) {
@@ -282,31 +295,61 @@ function drawFunctions() {
 			ctx.lineWidth += 1;
 		}
 
-		ctx.beginPath();
+		if (!f.screenValues || f.screenValues.length < samples) {
+			f.screenValues = new Float64Array(samples);
+		}
 
-		const samples = Math.max(400, w);
-		for (let i = 0; i <= samples; ++i) {
-			const sx = w * i / samples;
+		for (let i = 0; i < samples; ++i) {
+			const sx = w * (i - preSamples) / visibleSamples;
 			const x = screenToWorldX(sx);
 
 			let y;
 			try {
 				y = f.fn(x);
-			} catch (e) {
+			} catch {
 				y = NaN;
 			}
 
-			const sy = worldToScreenY(y);
+			let sy = worldToScreenY(y);
+			if (sy < cropTop) {
+				sy = -Infinity;
+			} else if (sy > cropBottom) {
+				sy = Infinity;
+			}
 
-			if (!Number.isFinite(sy) || sy < -cropDistance * h || sy > (cropDistance + 1) * h) {
-				ctx.stroke();
-				ctx.beginPath();
+			f.screenValues[i] = sy;
+		}
+
+		ctx.beginPath();
+		let drawing = false;
+		for (let i = preSamples; i < samples - postSamples; ++i) {
+			const sx = w * (i - preSamples) / visibleSamples;
+			const sy = f.screenValues[i];
+
+			if (!Number.isFinite(sy)) {
+				drawing = false;
 				continue;
 			}
 
-			ctx.lineTo(sx, sy);
-		}
+			const prevPrev = f.screenValues[i-2];
+			const prev = f.screenValues[i-1];
+			const next = f.screenValues[i+1];
+			if (prevPrev > prev && prev < trustedTop && trustedBottom < sy && sy > next) {
+				drawing = false;
+				continue;
+			}
+			if (prevPrev < prev && prev > trustedBottom && trustedTop > sy && sy < next) {
+				drawing = false;
+				continue;
+			}
 
+			if (drawing) {
+				ctx.lineTo(sx, sy);
+			} else {
+				ctx.moveTo(sx, sy);
+				drawing = true;
+			}
+		}
 		ctx.stroke();
 	}
 }
