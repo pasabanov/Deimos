@@ -368,9 +368,15 @@ function drawImplicitCurve(curveItem) {
 
 	const screenXs = new Float64Array(columns);
 	const screenYs = new Float64Array(rows);
+	const betweenScreenXs = new Float64Array(columns - 1);
+	const betweenScreenYs = new Float64Array(rows - 1);
 	const worldXs = new Float64Array(columns);
 	const worldYs = new Float64Array(rows);
+	const betweenWorldXs = new Float64Array(columns - 1);
+	const betweenWorldYs = new Float64Array(rows - 1);
 	const values = new Float64Array(columns * rows);
+	const betweenXValues = new Float64Array((columns - 1) * rows);
+	const betweenYValues = new Float64Array(columns * (rows - 1));
 
 	for (let i = 0; i < columns; ++i) {
 		screenXs[i] = Math.min(i * state.marchingSquaresStep, w);
@@ -379,6 +385,15 @@ function drawImplicitCurve(curveItem) {
 	for (let j = 0; j < rows; ++j) {
 		screenYs[j] = Math.min(j * state.marchingSquaresStep, h);
 		worldYs[j] = screenToWorldY(screenYs[j]);
+	}
+
+	for (let i = 0; i < columns - 1; ++i) {
+		betweenScreenXs[i] = (screenXs[i] + screenXs[i+1]) / 2;
+		betweenWorldXs[i] = screenToWorldX(betweenScreenXs[i]);
+	}
+	for (let j = 0; j < rows - 1; ++j) {
+		betweenScreenYs[j] = (screenYs[j] + screenYs[j+1]) / 2;
+		betweenWorldYs[j] = screenToWorldY(betweenScreenYs[j]);
 	}
 
 	for (let j = 0; j < rows; ++j) {
@@ -393,6 +408,42 @@ function drawImplicitCurve(curveItem) {
 					return;
 				}
 				values[offset+i] = NaN;
+			}
+		}
+	}
+
+	// horizontal edges
+	for (let j = 0; j < rows; ++j) {
+		const row = j * columns;
+		const offset = j * (columns - 1);
+		const worldY = worldYs[j];
+		for (let i = 0; i < columns - 1; ++i) {
+			if (Number.isFinite(values[row+i]) && Number.isFinite(values[row+i+1]) && (values[row+i] < 0) !== (values[row+i+1] < 0)) {
+				try {
+					betweenXValues[offset+i] = curveItem.curve.fn(betweenWorldXs[i], worldY);
+				} catch {
+					if (state.returnOnEvalError) {
+						return;
+					}
+				}
+			}
+		}
+	}
+	// vertical edges
+	for (let j = 0; j < rows - 1; ++j) {
+		const row0 = j * columns;
+		const row1 = row0 + columns;
+		const offset = j * columns;
+		const worldY = betweenWorldYs[j];
+		for (let i = 0; i < columns; ++i) {
+			if (Number.isFinite(values[row0+i]) && Number.isFinite(values[row1+i]) && (values[row0+i] < 0) !== (values[row1+i] < 0)) {
+				try {
+					betweenYValues[offset+i] = curveItem.curve.fn(worldXs[i], worldY);
+				} catch {
+					if (state.returnOnEvalError) {
+						return;
+					}
+				}
 			}
 		}
 	}
@@ -422,25 +473,31 @@ function drawImplicitCurve(curveItem) {
 			const v2 = values[row1+i+1];
 			const v3 = values[row1+i];
 
+			// values at the midpoints of the edges: top, right, bottom, left
+			const e0 = betweenXValues[row0-j+i];
+			const e1 = betweenYValues[row0+i+1];
+			const e2 = betweenXValues[row1-j+i-1];
+			const e3 = betweenYValues[row0+i];
+
 			let count = 0;
 
 			// top edge: 0 -> 1
-			if (Number.isFinite(v0) && Number.isFinite(v1) && (v0 < 0) !== (v1 < 0)) {
+			if (Number.isFinite(v0) && Number.isFinite(v1) && (v0 < 0) !== (v1 < 0) && Number.isFinite(e0) && (v0 < e0) === (e0 < v1)) {
 				ix[count] = x0 + v0 * (x1 - x0) / (v0 - v1);
 				iy[count++] = y0;
 			}
 			// right edge: 1 -> 2
-			if (Number.isFinite(v1) && Number.isFinite(v2) && (v1 < 0) !== (v2 < 0)) {
+			if (Number.isFinite(v1) && Number.isFinite(v2) && (v1 < 0) !== (v2 < 0) && Number.isFinite(e1) && (v1 < e1) === (e1 < v2)) {
 				ix[count] = x1;
 				iy[count++] = y0 + v1 * (y1 - y0) / (v1 - v2);
 			}
 			// bottom edge: 2 -> 3
-			if (Number.isFinite(v2) && Number.isFinite(v3) && (v2 < 0) !== (v3 < 0)) {
+			if (Number.isFinite(v2) && Number.isFinite(v3) && (v2 < 0) !== (v3 < 0) && Number.isFinite(e2) && (v2 < e2) === (e2 < v3)) {
 				ix[count] = x1 + v2 * (x0 - x1) / (v2 - v3);
 				iy[count++] = y1;
 			}
 			// left edge: 3 -> 0
-			if (Number.isFinite(v3) && Number.isFinite(v0) && (v3 < 0) !== (v0 < 0)) {
+			if (Number.isFinite(v3) && Number.isFinite(v0) && (v3 < 0) !== (v0 < 0) && Number.isFinite(e3) && (v3 < e3) === (e3 < v0)) {
 				ix[count] = x0;
 				iy[count++] = y1 + v3 * (y0 - y1) / (v3 - v0);
 			}
