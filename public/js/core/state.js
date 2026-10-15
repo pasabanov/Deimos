@@ -1,6 +1,5 @@
 const state = {
-	functions: [],
-	defaultLogBase: Math.E,
+	items: [],
 	colors: ['#c74440', '#2d70b3', '#348543', '#fa7e19', '#6042a6', '#000000'],
 	colorIndex: 0,
 	world: { xmin: -10, xmax: 10, ymin: -10, ymax: 10 },
@@ -14,13 +13,18 @@ const state = {
 		anchorY: NaN,
 		worldStart: { xmin: NaN, xmax: NaN, ymin: NaN, ymax: NaN },
 	},
-	config: {
+	samplesPerPixel: 3,
+	preSamples: 3,
+	postSamples: 2,
+	cropDistance: 1e9,
+	trustedDistance: 0,
+	marchingSquaresStep: 4,
+	returnOnEvalError: true,
+	sidebar: {
 		moveOutOfFields: false,
-		samplesPerPixel: 3,
-		preSamples: 3,
-		postSamples: 2,
-		cropDistance: 1e9,
-		trustedDistance: 0,
+	},
+	math: {
+		defaultLogBase: Math.E,
 	},
 };
 
@@ -34,4 +38,31 @@ const el = {
 	resizer: document.getElementById('resizer'),
 };
 
-export { state, el };
+const CURVE_TYPE = Object.freeze({
+	EXPLICIT: 'explicit',
+	IMPLICIT: 'implicit',
+	SINGLE_VARIABLE_EQUATION: 'single_variable_equation',
+});
+
+class Curve {
+	constructor(type, dependent, independent, fn) {
+		this.type = type;
+		this.dependent = dependent;
+		this.independent = independent;
+		this.fn = fn;
+	}
+}
+
+class CurveItem {
+	constructor(id, color, visible, selected, mathField, curve, valuesBuffer) {
+		this.id = id;
+		this.color = color;
+		this.visible = visible;
+		this.selected = selected;
+		this.mathField = mathField;
+		this.curve = curve;
+		this.valuesBuffer = valuesBuffer;
+	}
+}
+
+export { state, el, CURVE_TYPE, Curve, CurveItem };

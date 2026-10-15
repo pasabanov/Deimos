@@ -1,11 +1,11 @@
-import { state, el } from '../core/state.js';
+import { state, el, CurveItem } from '../core/state.js';
 import { draw } from '../graphics/canvas.js';
 import { compileLatex } from '../latex-compiler/index.js';
-import { AUTO_COMMANDS_FOR_MATHQUILL, AUTO_OPERATOR_NAMES_FOR_MATHQUILL } from '../latex-compiler/syntax.js';
+import { AUTO_COMMANDS_FOR_MATHQUILL, AUTO_OPERATOR_NAMES_FOR_MATHQUILL } from '../latex-compiler/datatypes.js';
 
 const MQ = window.MathQuill.getInterface(2);
 
-function addFunction() {
+function addCurveItem() {
 	const id = crypto.randomUUID();
 	const color = state.colors[state.colorIndex];
 	state.colorIndex = (state.colorIndex + 1) % state.colors.length;
@@ -29,14 +29,7 @@ function addFunction() {
 	wrapper.appendChild(del);
 	el.fnList.appendChild(wrapper);
 
-	let obj = {
-		id,
-		color,
-		field: null,
-		visible: true,
-		selected: false,
-		fn: () => NaN,
-	};
+	let item = new CurveItem(id, color, true, false, null, null, null);
 
 	const field = MQ.MathField(mqHost, {
 		supSubsRequireOperand: true,
@@ -56,74 +49,69 @@ function addFunction() {
 					field.keystroke('Left');
 					latex = field.latex();
 				}
-				if (!latex) {
-					obj.fn = () => NaN;
-					draw();
-					return;
-				}
 				try {
-					obj.fn = compileLatex(latex);
-				} catch (e) {
-					obj.fn = () => NaN;
+					item.curve = compileLatex(latex);
+				} catch {
+					item.curve = null;
 				}
-				draw();
+				requestAnimationFrame(draw);
 			},
 			enter: () => {
-				addFunction();
-				const idx = state.functions.findIndex(x => x.id === id);
-				state.functions[idx+1].field.focus();
+				addCurveItem();
+				const idx = state.items.findIndex(x => x.id === id);
+				state.items[idx+1].mathField.focus();
 			},
 			moveOutOf: dir => {
-				if (state.config.moveOutOfFields) {
+				if (state.sidebar.moveOutOfFields) {
 					if (dir === MQ.L) {
-						const idx = state.functions.findIndex(x => x.id === id);
+						const idx = state.items.findIndex(x => x.id === id);
 						if (idx > 0) {
-							state.functions[idx-1].field.focus();
+							state.items[idx-1].mathField.focus();
 						}
 					} else if (dir === MQ.R) {
-						const idx = state.functions.findIndex(x => x.id === id);
-						if (idx !== -1 && idx + 1 < state.functions.length) {
-							state.functions[idx+1].field.focus();
+						const idx = state.items.findIndex(x => x.id === id);
+						if (idx !== -1 && idx + 1 < state.items.length) {
+							state.items[idx+1].mathField.focus();
 						}
 					}
 				}
 			},
 			deleteOutOf: dir => {
 				if (dir === MQ.L) {
-					const idx = state.functions.findIndex(x => x.id === id);
+					const idx = state.items.findIndex(x => x.id === id);
 					if (idx > 0) {
-						state.functions.splice(idx, 1);
+						state.items.splice(idx, 1);
 						wrapper.remove();
-						state.functions[idx-1].field.focus();
+						state.items[idx-1].mathField.focus();
 					}
 				}
 			},
 			upOutOf: () => {
-				const idx = state.functions.findIndex(x => x.id === id);
+				const idx = state.items.findIndex(x => x.id === id);
 				if (idx > 0) {
-					state.functions[idx-1].field.focus();
+					state.items[idx-1].mathField.focus();
 				}
 			},
 			downOutOf: () => {
-				const idx = state.functions.findIndex(x => x.id === id);
-				if (idx !== -1 && idx + 1 < state.functions.length) {
-					state.functions[idx+1].field.focus();
+				const idx = state.items.findIndex(x => x.id === id);
+				if (idx !== -1 && idx + 1 < state.items.length) {
+					state.items[idx+1].mathField.focus();
 				}
 			},
 		},
 	});
-	obj.field = field;
+	item.mathField = field;
 
 	mqHost.addEventListener('focusin', () => {
-		obj.selected = true;
-		draw();
+		item.selected = true;
+		requestAnimationFrame(draw);
 	});
 
 	mqHost.addEventListener('focusout', () => {
-		obj.selected = false;
+		item.selected = false;
 	});
 
-	state.functions.push(obj);
+	state.items.push(item);
 
 	colorDot.addEventListener('pointerdown', e => e.preventDefault());
 	colorDot.addEventListener('click', () => {
@@ -135,33 +123,33 @@ function addFunction() {
 			colorDot.style.background = color;
 			colorDot.style.border = 'none';
 		}
-		obj.visible = !off;
-		draw();
+		item.visible = !off;
+		requestAnimationFrame(draw);
 	});
 
 	del.addEventListener('pointerdown', e => e.preventDefault());
 	del.addEventListener('click', () => {
-		const idx = state.functions.findIndex(x => x.id === id);
+		const idx = state.items.findIndex(x => x.id === id);
 		if (idx >= 0) {
-			state.functions.splice(idx, 1);
+			state.items.splice(idx, 1);
 			wrapper.remove();
-			if (state.functions.length === 0) {
-				addFunction();
-				state.functions[0].field.focus();
+			if (state.items.length === 0) {
+				addCurveItem();
+				state.items[0].mathField.focus();
 			}
-			draw();
+			requestAnimationFrame(draw);
 		}
 	});
 
 	if (!window.matchMedia('(orientation: portrait)').matches) {
-		obj.field.focus();
+		item.mathField.focus();
 	}
 }
 
 function initSidebar() {
-	addFunction();
+	addCurveItem();
 	el.sidebar.addEventListener('pointerdown', () => requestAnimationFrame(draw));
-	el.fnAdd.addEventListener('click', addFunction);
+	el.fnAdd.addEventListener('click', addCurveItem);
 }
 
-export { initSidebar, addFunction };
+export { initSidebar, addCurveItem };

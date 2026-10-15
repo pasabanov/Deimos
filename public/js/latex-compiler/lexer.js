@@ -1,5 +1,5 @@
 import { isWhitespace, isDigit, isAlpha } from '../utils/char-utils.js';
-import { VARIABLES, CONSTANT_NAMES, TOKEN_KIND, TOKEN_KIND_VALUES, Token } from './syntax.js';
+import { VARIABLES, CONSTANT_NAMES, TOKEN_KIND, TOKEN_KIND_VALUES, Token } from './datatypes.js';
 
 
 class Lexer {

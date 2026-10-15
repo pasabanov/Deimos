@@ -207,10 +207,11 @@ const NODE_TYPE = Object.freeze({
 	OPERATOR: 'operator',
 	FUNCTION: 'function',
 	IDENTIFIER: 'identifier',
+	ASSIGNMENT: 'assignment',
 });
 
 class Node {
-	constructor(type, value=null, name=null, args=null) {
+	constructor(type, value, name, args) {
 		this.type = type;
 		this.value = value;
 		this.name = name;
@@ -218,4 +219,42 @@ class Node {
 	}
 }
 
-export { TOKEN_KIND, TOKEN_KIND_VALUES, Token, OPERATORS_INFO, VARIABLES, CONSTANTS, CONSTANT_NAMES, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, AUTO_COMMANDS_FOR_MATHQUILL, AUTO_OPERATOR_NAMES_FOR_MATHQUILL, NODE_TYPE, Node };
+const MATH_EXPRESSION_TYPE = Object.freeze({
+	CONSTANT: 'constant',
+	EXPRESSION: 'expression',
+	SINGLE_VARIABLE_EQUATION: 'single_variable_equation',
+	CONSTANT_FUNCTION: 'constant_function',
+	EXPLICIT_FUNCTION: 'explicit_function',
+	IMPLICIT_FUNCTION: 'implicit_function',
+	SYNTAX_ERROR: 'syntax_error',
+});
+
+class MathExpression {
+	constructor(type, variables, dependent, independent, lhs, rhs) {
+		this.type = type;
+		this.variables = variables;
+		this.dependent = dependent;
+		this.independent = independent;
+		this.lhs = lhs;
+		this.rhs = rhs;
+	}
+}
+
+export {
+	TOKEN_KIND,
+	TOKEN_KIND_VALUES,
+	Token,
+	OPERATORS_INFO,
+	VARIABLES,
+	CONSTANTS,
+	CONSTANT_NAMES,
+	OPERATORS,
+	FUNCTIONS,
+	FUNCTION_ALIASES,
+	AUTO_COMMANDS_FOR_MATHQUILL,
+	AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
+	NODE_TYPE,
+	Node,
+	MATH_EXPRESSION_TYPE,
+	MathExpression,
+};

@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { TOKEN_KIND, OPERATORS_INFO, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, NODE_TYPE, Node } from './syntax.js';
+import { TOKEN_KIND, OPERATORS_INFO, VARIABLES, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, NODE_TYPE, Node } from './datatypes.js';
 
 class Parser {
 	constructor(tokens) {
@@ -41,21 +41,21 @@ class Parser {
 		return false;
 	}
 
-	expect(kind, message=null) {
+	expect(kind) {
 		if (this.peek().kind !== kind) {
-			throw new Error(message ?? `Expected ${kind} but got ${this.peek().kind} at ${this.pos}`);
+			throw new Error(`Expected ${kind} but got ${this.peek().kind} at ${this.pos}`);
 		}
 		this.get();
 	}
 
-	expectOneOf(kinds, message=null) {
+	expectOneOf(kinds) {
 		for (const kind of kinds) {
 			if (this.peek().kind === kind) {
 				this.get();
 				return;
 			}
 		}
-		throw new Error(message ?? `Expected one of ${kinds} but got ${this.peek().kind} at ${this.pos}`);
+		throw new Error(`Expected one of ${kinds} but got ${this.peek().kind} at ${this.pos}`);
 	}
 
 	parse() {
@@ -64,13 +64,11 @@ class Parser {
 
 	parseAssignment() {
 		const lhs = this.parseExpression();
-		if (this.match(TOKEN_KIND.ASSIGNMENT)) {
-			const rhs = this.parseExpression();
-			if (lhs.type === NODE_TYPE.VARIABLE && lhs.name === 'y') {
-				return rhs;
-			}
+		if (!this.match(TOKEN_KIND.ASSIGNMENT)) {
+			return lhs;
 		}
-		return lhs;
+		const rhs = this.parseExpression();
+		return new Node(NODE_TYPE.ASSIGNMENT, null, null, [lhs, rhs]);
 	}
 
 	parseExpression(minPrecedence=0) {
@@ -164,11 +162,8 @@ class Parser {
 			}
 			case TOKEN_KIND.IDENTIFIER: {
 				this.get();
-				if (token.text === 'x') {
-					return new Node(NODE_TYPE.VARIABLE, null, 'x', null);
-				}
-				if (token.text === 'y') {
-					return new Node(NODE_TYPE.VARIABLE, null, 'y', null);
+				if (VARIABLES.includes(token.text)) {
+					return new Node(NODE_TYPE.VARIABLE, null, token.text, null);
 				}
 				if (CONSTANTS.hasOwnProperty(token.text)) {
 					return new Node(NODE_TYPE.NUMBER, CONSTANTS[token.text], null, null);
@@ -283,7 +278,7 @@ class Parser {
 					}
 				}
 				if (base === undefined) {
-					base = new Node(NODE_TYPE.NUMBER, state.defaultLogBase, null, null);
+					base = new Node(NODE_TYPE.NUMBER, state.math.defaultLogBase, null, null);
 				}
 				const f = new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.LOG, [base].concat(this.parseFuncArguments()));
 				if (exponent !== undefined) {
