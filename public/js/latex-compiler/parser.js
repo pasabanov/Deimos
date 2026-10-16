@@ -164,13 +164,24 @@ class Parser {
 			}
 			case TOKEN_KIND.IDENTIFIER: {
 				this.get();
-				if (VARIABLES.includes(token.text)) {
-					return new Node(NODE_TYPE.VARIABLE, null, token.text, null);
+				let text = token.text;
+				if (this.match(TOKEN_KIND.UNDERSCORE)) {
+					const startPos = this.pos;
+					this.parsePrimary();
+					const endPos = this.pos;
+					let sub = '';
+					for (let i = startPos; i < endPos; ++i) {
+						sub += this.at(i).text;
+					}
+					text += '_' + sub;
 				}
-				if (CONSTANTS.hasOwnProperty(token.text)) {
-					return new Node(NODE_TYPE.NUMBER, CONSTANTS[token.text], null, null);
+				if (VARIABLES.includes(text)) {
+					return new Node(NODE_TYPE.VARIABLE, null, text, null);
 				}
-				return new Node(NODE_TYPE.IDENTIFIER, null, token.text, null);
+				if (CONSTANTS.hasOwnProperty(text)) {
+					return new Node(NODE_TYPE.NUMBER, CONSTANTS[text], null, null);
+				}
+				return new Node(NODE_TYPE.IDENTIFIER, null, text, null);
 			}
 			case TOKEN_KIND.L_PARENTHESIS:
 			case TOKEN_KIND.LEFT_PARENTHESIS: {
@@ -180,7 +191,8 @@ class Parser {
 				return e;
 			}
 			case TOKEN_KIND.L_BRACE: {
-				if (this.at(this.pos - 1).kind === TOKEN_KIND.POWER) {
+				const prevToken = this.at(this.pos - 1);
+				if (prevToken.kind === TOKEN_KIND.POWER || prevToken.kind === TOKEN_KIND.UNDERSCORE) {
 					this.get();
 					const e = this.parseExpression();
 					this.expect(TOKEN_KIND.R_BRACE);
