@@ -1,4 +1,7 @@
-import { state, el, CURVE_TYPE, CurveItem } from '../core/state.js';
+import { state } from '../core/state.js';
+import { el } from '../ui/el.js';
+import { MATH_EXPRESSION_TYPE } from '../core/math-expression.js';
+import { GraphItem } from '../core/items.js';
 
 const ctx = el.canvas.getContext('2d');
 
@@ -269,9 +272,9 @@ function createFloat64Buffer(length) {
 	return new Float64Array(length).fill(NaN);
 }
 
-function computeExplicitCurveScreenValues(curveItem, independentPixels, visibleSamples, samples, cropMin, cropMax, orientation) {
-	if (!curveItem.valuesBuffer || curveItem.valuesBuffer.length < samples) {
-		curveItem.valuesBuffer = createFloat64Buffer(samples);
+function computeExplicitFunctionScreenValues(graphItem, independentPixels, visibleSamples, samples, cropMin, cropMax, orientation) {
+	if (!graphItem.valuesBuffer || graphItem.valuesBuffer.length < samples) {
+		graphItem.valuesBuffer = createFloat64Buffer(samples);
 	}
 
 	for (let i = 0; i < samples; ++i) {
@@ -280,7 +283,7 @@ function computeExplicitCurveScreenValues(curveItem, independentPixels, visibleS
 
 		let dependent;
 		try {
-			dependent = curveItem.curve.fn(independent);
+			dependent = graphItem.mathExpression.fn(independent);
 		} catch {
 			if (state.returnOnEvalError) {
 				return;
@@ -295,15 +298,15 @@ function computeExplicitCurveScreenValues(curveItem, independentPixels, visibleS
 			screenValue = Infinity;
 		}
 
-		curveItem.valuesBuffer[i] = screenValue;
+		graphItem.valuesBuffer[i] = screenValue;
 	}
 }
 
-function drawExplicitCurve(curveItem) {
+function drawExplicitFunction(graphItem) {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
 
-	const orientation = curveItem.curve.dependent === 'y' ? 'x' : 'y';
+	const orientation = graphItem.mathExpression.dependent === 'x' || graphItem.mathExpression.independent === 'y' ? 'y' : 'x';
 
 	const independentPixels = orientation === 'x' ? w : h;
 	const dependentPixels = orientation === 'x' ? h : w;
@@ -314,16 +317,16 @@ function drawExplicitCurve(curveItem) {
 	const trustedMin = -state.trustedDistance * dependentPixels;
 	const trustedMax = (state.trustedDistance + 1) * dependentPixels;
 
-	computeExplicitCurveScreenValues(curveItem, independentPixels, visibleSamples, samples, -state.cropDistance * dependentPixels, (state.cropDistance + 1) * dependentPixels, orientation);
+	computeExplicitFunctionScreenValues(graphItem, independentPixels, visibleSamples, samples, -state.cropDistance * dependentPixels, (state.cropDistance + 1) * dependentPixels, orientation);
 
-	ctx.strokeStyle = curveItem.color;
-	ctx.lineWidth = curveItem.selected ? 3.5 : 2.5;
+	ctx.strokeStyle = graphItem.color;
+	ctx.lineWidth = graphItem.selected ? 3.5 : 2.5;
 
 	ctx.beginPath();
 	let drawing = false;
 	for (let i = state.preSamples; i < visibleSamples + state.preSamples; ++i) {
 		const sampleScreen = independentPixels * (i - state.preSamples) / visibleSamples;
-		const valueScreen = curveItem.valuesBuffer[i];
+		const valueScreen = graphItem.valuesBuffer[i];
 
 		if (!Number.isFinite(valueScreen)) {
 			drawing = false;
@@ -334,15 +337,15 @@ function drawExplicitCurve(curveItem) {
 			for (const direction of [-1, 1]) {
 				let monotonic = true;
 				for (let j = 1; j < state.preSamples && monotonic; ++j) {
-					monotonic = direction * (curveItem.valuesBuffer[i-j-1] - curveItem.valuesBuffer[i-j]) > 0;
+					monotonic = direction * (graphItem.valuesBuffer[i-j-1] - graphItem.valuesBuffer[i-j]) > 0;
 				}
 				for (let j = 0; j < state.postSamples && monotonic; ++j) {
-					monotonic = direction * (curveItem.valuesBuffer[i+j] - curveItem.valuesBuffer[i+j+1]) > 0;
+					monotonic = direction * (graphItem.valuesBuffer[i+j] - graphItem.valuesBuffer[i+j+1]) > 0;
 				}
 				if (monotonic
 					&& (direction > 0
-						? curveItem.valuesBuffer[i-1] < trustedMin && trustedMax < valueScreen
-						: curveItem.valuesBuffer[i-1] > trustedMax && trustedMin > valueScreen
+						? graphItem.valuesBuffer[i-1] < trustedMin && trustedMax < valueScreen
+						: graphItem.valuesBuffer[i-1] > trustedMax && trustedMin > valueScreen
 					)
 				) {
 					drawing = false;
@@ -363,20 +366,20 @@ function drawExplicitCurve(curveItem) {
 	ctx.stroke();
 }
 
-function drawImplicitCurve(curveItem) {
+function drawImplicitFunction(graphItem) {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
 
 	const columns = 1 + Math.ceil(w / state.marchingSquaresStep);
 	const rows = 1 + Math.ceil(h / state.marchingSquaresStep);
 
-	if (!curveItem.implicitBuffers
-		|| !curveItem.implicitBuffers.columns
-		|| curveItem.implicitBuffers.columns < columns
-		|| !curveItem.implicitBuffers.rows
-		|| curveItem.implicitBuffers.rows < rows
+	if (!graphItem.implicitBuffers
+		|| !graphItem.implicitBuffers.columns
+		|| graphItem.implicitBuffers.columns < columns
+		|| !graphItem.implicitBuffers.rows
+		|| graphItem.implicitBuffers.rows < rows
 	) {
-		curveItem.implicitBuffers = {
+		graphItem.implicitBuffers = {
 			columns,
 			rows,
 			screenXs: createFloat64Buffer(columns),
@@ -405,7 +408,7 @@ function drawImplicitCurve(curveItem) {
 		values,
 		betweenXValues,
 		betweenYValues,
-	} = curveItem.implicitBuffers;
+	} = graphItem.implicitBuffers;
 
 	for (let i = 0; i < columns; ++i) {
 		screenXs[i] = Math.min(i * state.marchingSquaresStep, w);
@@ -431,7 +434,7 @@ function drawImplicitCurve(curveItem) {
 
 		for (let i = 0; i < columns; ++i) {
 			try {
-				values[offset+i] = curveItem.curve.fn(worldXs[i], worldY);
+				values[offset+i] = graphItem.mathExpression.fn(worldXs[i], worldY);
 			} catch {
 				if (state.returnOnEvalError) {
 					return;
@@ -449,7 +452,7 @@ function drawImplicitCurve(curveItem) {
 		for (let i = 0; i < columns - 1; ++i) {
 			if (Number.isFinite(values[row+i]) && Number.isFinite(values[row+i+1]) && (values[row+i] < 0) !== (values[row+i+1] < 0)) {
 				try {
-					betweenXValues[offset+i] = curveItem.curve.fn(betweenWorldXs[i], worldY);
+					betweenXValues[offset+i] = graphItem.mathExpression.fn(betweenWorldXs[i], worldY);
 				} catch {
 					if (state.returnOnEvalError) {
 						return;
@@ -467,7 +470,7 @@ function drawImplicitCurve(curveItem) {
 		for (let i = 0; i < columns; ++i) {
 			if (Number.isFinite(values[row0+i]) && Number.isFinite(values[row1+i]) && (values[row0+i] < 0) !== (values[row1+i] < 0)) {
 				try {
-					betweenYValues[offset+i] = curveItem.curve.fn(worldXs[i], worldY);
+					betweenYValues[offset+i] = graphItem.mathExpression.fn(worldXs[i], worldY);
 				} catch {
 					if (state.returnOnEvalError) {
 						return;
@@ -477,8 +480,8 @@ function drawImplicitCurve(curveItem) {
 		}
 	}
 
-	ctx.strokeStyle = curveItem.color;
-	ctx.lineWidth = curveItem.selected ? 3.5 : 2.5;
+	ctx.strokeStyle = graphItem.color;
+	ctx.lineWidth = graphItem.selected ? 3.5 : 2.5;
 
 	ctx.beginPath();
 
@@ -539,7 +542,7 @@ function drawImplicitCurve(curveItem) {
 				let center;
 
 				try {
-					center = curveItem.curve.fn((worldXs[i] + worldXs[i+1]) / 2, (worldYs[j] + worldYs[j+1]) / 2);
+					center = graphItem.mathExpression.fn((worldXs[i] + worldXs[i+1]) / 2, (worldYs[j] + worldYs[j+1]) / 2);
 				} catch {
 					if (state.returnOnEvalError) {
 						return;
@@ -569,46 +572,46 @@ function drawImplicitCurve(curveItem) {
 	ctx.stroke();
 }
 
-function computeSingleVariableEquationValues(curveItem, independentPixels, visibleSamples, samples, orientation) {
-	if (!curveItem.valuesBuffer || curveItem.valuesBuffer.length < samples) {
-		curveItem.valuesBuffer = createFloat64Buffer(samples);
+function computeSingleVariableEquationValues(graphItem, independentPixels, visibleSamples, samples, orientation) {
+	if (!graphItem.valuesBuffer || graphItem.valuesBuffer.length < samples) {
+		graphItem.valuesBuffer = createFloat64Buffer(samples);
 	}
 	for (let i = 0; i < samples; ++i) {
 		const sampleScreen = independentPixels * (i - state.preSamples) / visibleSamples;
 		const variable = orientation === 'x' ? screenToWorldX(sampleScreen) : screenToWorldY(sampleScreen);
 		try {
-			curveItem.valuesBuffer[i] = curveItem.curve.fn(variable);
+			graphItem.valuesBuffer[i] = graphItem.mathExpression.fn(variable);
 		} catch {
 			if (state.returnOnEvalError) {
 				return;
 			}
-			curveItem.valuesBuffer[i] = NaN;
+			graphItem.valuesBuffer[i] = NaN;
 		}
 	}
 }
 
-function drawSingleVariableEquation(curveItem) {
+function drawSingleVariableEquation(graphItem) {
 	const w = el.canvas.clientWidth;
 	const h = el.canvas.clientHeight;
 
-	const orientation = curveItem.curve.dependent === 'x' ? 'x' : 'y';
+	const orientation = graphItem.mathExpression.dependent === 'y' || graphItem.mathExpression.independent === 'y' ? 'y' : 'x';
 
 	const independentPixels = orientation === 'x' ? w : h;
 
 	const visibleSamples = state.samplesPerPixel * independentPixels;
 	const samples = visibleSamples + state.preSamples + state.postSamples;
 
-	computeSingleVariableEquationValues(curveItem, independentPixels, visibleSamples, samples, orientation);
+	computeSingleVariableEquationValues(graphItem, independentPixels, visibleSamples, samples, orientation);
 
-	ctx.strokeStyle = curveItem.color;
-	ctx.lineWidth = curveItem.selected ? 3.5 : 2.5;
+	ctx.strokeStyle = graphItem.color;
+	ctx.lineWidth = graphItem.selected ? 3.5 : 2.5;
 
 	ctx.beginPath();
 	for (let i = state.preSamples; i < visibleSamples + state.preSamples; ++i) {
 		const sampleScreen = independentPixels * (i - state.preSamples) / visibleSamples;
-		const prevValue = curveItem.valuesBuffer[i-1];
-		const curValue = curveItem.valuesBuffer[i];
-		const nextValue = curveItem.valuesBuffer[i+1];
+		const prevValue = graphItem.valuesBuffer[i-1];
+		const curValue = graphItem.valuesBuffer[i];
+		const nextValue = graphItem.valuesBuffer[i+1];
 
 		if (!Number.isFinite(prevValue) || !Number.isFinite(curValue) || !Number.isFinite(nextValue)) {
 			continue;
@@ -624,51 +627,66 @@ function drawSingleVariableEquation(curveItem) {
 	ctx.stroke();
 }
 
-function drawCurve(curveItem) {
-	switch (curveItem.curve.type) {
-		case CURVE_TYPE.EXPLICIT: {
-			drawExplicitCurve(curveItem);
+function drawGraph(graphItem) {
+	switch (graphItem.mathExpression.type) {
+		case MATH_EXPRESSION_TYPE.CONSTANT: {
+			drawExplicitFunction(graphItem);
 			break;
 		}
-		case CURVE_TYPE.IMPLICIT: {
-			drawImplicitCurve(curveItem);
+		case MATH_EXPRESSION_TYPE.EXPRESSION: {
+			drawExplicitFunction(graphItem);
 			break;
 		}
-		case CURVE_TYPE.SINGLE_VARIABLE_EQUATION: {
-			drawSingleVariableEquation(curveItem);
+		case MATH_EXPRESSION_TYPE.SINGLE_VARIABLE_EQUATION: {
+			drawSingleVariableEquation(graphItem);
+			break;
+		}
+		case MATH_EXPRESSION_TYPE.CONSTANT_FUNCTION: {
+			drawExplicitFunction(graphItem);
+			break;
+		}
+		case MATH_EXPRESSION_TYPE.EXPLICIT_FUNCTION: {
+			drawExplicitFunction(graphItem);
+			break;
+		}
+		case MATH_EXPRESSION_TYPE.IMPLICIT_FUNCTION: {
+			drawImplicitFunction(graphItem);
+			break;
+		}
+		case MATH_EXPRESSION_TYPE.SYNTAX_ERROR: {
 			break;
 		}
 		default:
-			throw new Error(`Unexpected curve type: ${curveItem.curve.type}`);
+			throw new Error(`Unexpected math expression type: ${graphItem.mathExpression.type}`);
 	}
 }
 
-function drawCurves() {
-	let selectedCurveItem = null;
+function drawGraphs() {
+	let selectedGraphItem = null;
 
 	for (const item of state.items) {
-		if (!(item instanceof CurveItem)) {
+		if (!(item instanceof GraphItem)) {
 			continue;
 		}
-		const curveItem = item;
-		if (!curveItem.visible || !curveItem.curve) {
+		const graphItem = item;
+		if (!graphItem.visible || !graphItem.mathExpression) {
 			continue;
 		}
-		if (curveItem.selected) {
-			selectedCurveItem = curveItem;
+		if (graphItem.selected) {
+			selectedGraphItem = graphItem;
 			continue;
 		}
-		drawCurve(curveItem);
+		drawGraph(graphItem);
 	}
 
-	if (selectedCurveItem) {
-		drawCurve(selectedCurveItem);
+	if (selectedGraphItem) {
+		drawGraph(selectedGraphItem);
 	}
 }
 
 function draw() {
 	drawGrid();
-	drawCurves();
+	drawGraphs();
 	el.ranges.textContent = `x: [${formatBoundary(state.world.xmin)}, ${formatBoundary(state.world.xmax)}]  y: [${formatBoundary(state.world.ymin)}, ${formatBoundary(state.world.ymax)}]`;
 }
 

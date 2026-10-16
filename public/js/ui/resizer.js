@@ -1,4 +1,4 @@
-import { el } from '../core/state.js';
+import { el } from './el.js';
 import { resizeCanvas } from '../graphics/canvas.js';
 
 function initResizer() {

@@ -1,5 +1,6 @@
-import { NODE_TYPE, VARIABLES, MATH_EXPRESSION_TYPE, MathExpression } from './datatypes.js';
+import { NODE_TYPE, VARIABLES } from './datatypes.js';
 import { evalNode } from './evaluator.js';
+import { MATH_EXPRESSION_TYPE, MathExpression } from '../core/math-expression.js';
 
 class Semantic {
 	constructor(ast, optimize = true) {
@@ -46,16 +47,16 @@ class Semantic {
 		}
 		const variables = this.collectVariables(this.ast);
 		if (variables.size === 0) {
-			return new MathExpression(MATH_EXPRESSION_TYPE.CONSTANT, variables, null, null, null, this.ast);
+			return new MathExpression(MATH_EXPRESSION_TYPE.CONSTANT, variables, null, null, this.ast, null, this.ast, null);
 		}
 		if (variables.size === 1) {
 			for (const variable of VARIABLES) {
 				if (variables.has(variable)) {
-					return new MathExpression(MATH_EXPRESSION_TYPE.EXPRESSION, variables, null, variable, null, this.ast);
+					return new MathExpression(MATH_EXPRESSION_TYPE.EXPRESSION, variables, null, variable, this.ast, null, this.ast, null);
 				}
 			}
 		}
-		return new MathExpression(MATH_EXPRESSION_TYPE.SYNTAX_ERROR, variables, null, null, null, this.ast);
+		return new MathExpression(MATH_EXPRESSION_TYPE.SYNTAX_ERROR, variables, null, null, this.ast, null, this.ast, null);
 	}
 
 	analyzeAssignment() {
@@ -65,31 +66,31 @@ class Semantic {
 			const dependent = lhs.name;
 			if (variables.has(dependent)) {
 				if (variables.size === 1) {
-					return new MathExpression(MATH_EXPRESSION_TYPE.SINGLE_VARIABLE_EQUATION, variables, dependent, dependent, lhs, rhs);
+					return new MathExpression(MATH_EXPRESSION_TYPE.SINGLE_VARIABLE_EQUATION, variables, dependent, dependent, this.ast, lhs, rhs, null);
 				}
-				return new MathExpression(MATH_EXPRESSION_TYPE.IMPLICIT_FUNCTION, variables, null, null, lhs, rhs);
+				return new MathExpression(MATH_EXPRESSION_TYPE.IMPLICIT_FUNCTION, variables, null, null, this.ast, lhs, rhs, null);
 			}
 			if (variables.size === 0) {
-				return new MathExpression(MATH_EXPRESSION_TYPE.CONSTANT_FUNCTION, variables, dependent, null, null, rhs);
+				return new MathExpression(MATH_EXPRESSION_TYPE.CONSTANT_FUNCTION, variables, dependent, null, this.ast, null, rhs, null);
 			}
 			if (variables.size === 1) {
 				for (const variable of VARIABLES) {
 					if (variables.has(variable)) {
-						return new MathExpression(MATH_EXPRESSION_TYPE.EXPLICIT_FUNCTION, variables, dependent, variable, null, rhs);
+						return new MathExpression(MATH_EXPRESSION_TYPE.EXPLICIT_FUNCTION, variables, dependent, variable, this.ast, null, rhs, null);
 					}
 				}
 			}
-			return new MathExpression(MATH_EXPRESSION_TYPE.SYNTAX_ERROR, variables, null, null, null, this.ast);
+			return new MathExpression(MATH_EXPRESSION_TYPE.SYNTAX_ERROR, variables, null, null, this.ast, null, this.ast, null);
 		}
 		this.collectVariables(lhs, variables);
 		if (variables.size === 1) {
 			for (const variable of VARIABLES) {
 				if (variables.has(variable)) {
-					return new MathExpression(MATH_EXPRESSION_TYPE.SINGLE_VARIABLE_EQUATION, variables, variable, variable, lhs, rhs);
+					return new MathExpression(MATH_EXPRESSION_TYPE.SINGLE_VARIABLE_EQUATION, variables, variable, variable, this.ast, lhs, rhs, null);
 				}
 			}
 		}
-		return new MathExpression(MATH_EXPRESSION_TYPE.IMPLICIT_FUNCTION, variables, null, null, lhs, rhs);
+		return new MathExpression(MATH_EXPRESSION_TYPE.IMPLICIT_FUNCTION, variables, null, null, this.ast, lhs, rhs, null);
 	}
 }
 

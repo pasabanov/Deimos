@@ -28,42 +28,4 @@ const state = {
 	},
 };
 
-const el = {
-	canvas: document.getElementById('canvas'),
-	sidebar: document.getElementById('sidebar'),
-	fnList: document.getElementById('fn-list'),
-	fnAdd: document.getElementById('fn-add'),
-	ranges: document.getElementById('ranges'),
-	app: document.getElementById('app'),
-	resizer: document.getElementById('resizer'),
-};
-
-const CURVE_TYPE = Object.freeze({
-	EXPLICIT: 'explicit',
-	IMPLICIT: 'implicit',
-	SINGLE_VARIABLE_EQUATION: 'single_variable_equation',
-});
-
-class Curve {
-	constructor(type, dependent, independent, fn) {
-		this.type = type;
-		this.dependent = dependent;
-		this.independent = independent;
-		this.fn = fn;
-	}
-}
-
-class CurveItem {
-	constructor(id, color, visible, selected, mathField, curve, valuesBuffer, implicitBuffers) {
-		this.id = id;
-		this.color = color;
-		this.visible = visible;
-		this.selected = selected;
-		this.mathField = mathField;
-		this.curve = curve;
-		this.valuesBuffer = valuesBuffer;
-		this.implicitBuffers = implicitBuffers;
-	}
-}
-
-export { state, el, CURVE_TYPE, Curve, CurveItem };
+export { state };

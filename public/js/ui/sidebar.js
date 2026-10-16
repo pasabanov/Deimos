@@ -1,11 +1,13 @@
-import { state, el, CurveItem } from '../core/state.js';
+import { state } from '../core/state.js';
+import { el } from './el.js';
+import { GraphItem } from '../core/items.js';
 import { draw } from '../graphics/canvas.js';
 import { compileLatex } from '../latex-compiler/index.js';
 import { AUTO_COMMANDS_FOR_MATHQUILL, AUTO_OPERATOR_NAMES_FOR_MATHQUILL } from '../latex-compiler/datatypes.js';
 
 const MQ = window.MathQuill.getInterface(2);
 
-function addCurveItem() {
+function addGraphItem() {
 	const id = crypto.randomUUID();
 	const color = state.colors[state.colorIndex];
 	state.colorIndex = (state.colorIndex + 1) % state.colors.length;
@@ -29,7 +31,7 @@ function addCurveItem() {
 	wrapper.appendChild(del);
 	el.fnList.appendChild(wrapper);
 
-	let item = new CurveItem(id, color, true, false, null, null, null);
+	let graphItem = new GraphItem(id, color, true, false, null, null, null, null);
 
 	const field = MQ.MathField(mqHost, {
 		supSubsRequireOperand: true,
@@ -50,17 +52,20 @@ function addCurveItem() {
 					latex = field.latex();
 				}
 				try {
-					item.curve = compileLatex(latex);
+					graphItem.mathExpression = compileLatex(latex);
 				} catch {
-					item.curve = null;
-					if (item.valuesBuffer) {
-						item.valuesBuffer.fill(NaN);
+					graphItem.mathExpression = null;
+					if (graphItem.valuesBuffer) {
+						graphItem.valuesBuffer.fill(NaN);
+					}
+					if (graphItem.implicitBuffers) {
+						graphItem.implicitBuffers = null;
 					}
 				}
 				requestAnimationFrame(draw);
 			},
 			enter: () => {
-				addCurveItem();
+				addGraphItem();
 				const idx = state.items.findIndex(x => x.id === id);
 				state.items[idx+1].mathField.focus();
 			},
@@ -103,18 +108,18 @@ function addCurveItem() {
 			},
 		},
 	});
-	item.mathField = field;
+	graphItem.mathField = field;
 
 	mqHost.addEventListener('focusin', () => {
-		item.selected = true;
+		graphItem.selected = true;
 		requestAnimationFrame(draw);
 	});
 
 	mqHost.addEventListener('focusout', () => {
-		item.selected = false;
+		graphItem.selected = false;
 	});
 
-	state.items.push(item);
+	state.items.push(graphItem);
 
 	colorDot.addEventListener('pointerdown', e => e.preventDefault());
 	colorDot.addEventListener('click', () => {
@@ -126,7 +131,7 @@ function addCurveItem() {
 			colorDot.style.background = color;
 			colorDot.style.border = 'none';
 		}
-		item.visible = !off;
+		graphItem.visible = !off;
 		requestAnimationFrame(draw);
 	});
 
@@ -137,7 +142,7 @@ function addCurveItem() {
 			state.items.splice(idx, 1);
 			wrapper.remove();
 			if (state.items.length === 0) {
-				addCurveItem();
+				addGraphItem();
 				state.items[0].mathField.focus();
 			}
 			requestAnimationFrame(draw);
@@ -145,14 +150,14 @@ function addCurveItem() {
 	});
 
 	if (!window.matchMedia('(orientation: portrait)').matches) {
-		item.mathField.focus();
+		graphItem.mathField.focus();
 	}
 }
 
 function initSidebar() {
-	addCurveItem();
+	addGraphItem();
 	el.sidebar.addEventListener('pointerdown', () => requestAnimationFrame(draw));
-	el.fnAdd.addEventListener('click', addCurveItem);
+	el.fnAdd.addEventListener('click', addGraphItem);
 }
 
-export { initSidebar, addCurveItem };
+export { initSidebar, addGraphItem };

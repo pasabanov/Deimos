@@ -219,27 +219,6 @@ class Node {
 	}
 }
 
-const MATH_EXPRESSION_TYPE = Object.freeze({
-	CONSTANT: 'constant',
-	EXPRESSION: 'expression',
-	SINGLE_VARIABLE_EQUATION: 'single_variable_equation',
-	CONSTANT_FUNCTION: 'constant_function',
-	EXPLICIT_FUNCTION: 'explicit_function',
-	IMPLICIT_FUNCTION: 'implicit_function',
-	SYNTAX_ERROR: 'syntax_error',
-});
-
-class MathExpression {
-	constructor(type, variables, dependent, independent, lhs, rhs) {
-		this.type = type;
-		this.variables = variables;
-		this.dependent = dependent;
-		this.independent = independent;
-		this.lhs = lhs;
-		this.rhs = rhs;
-	}
-}
-
 export {
 	TOKEN_KIND,
 	TOKEN_KIND_VALUES,
@@ -255,6 +234,4 @@ export {
 	AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
 	NODE_TYPE,
 	Node,
-	MATH_EXPRESSION_TYPE,
-	MathExpression,
 };
