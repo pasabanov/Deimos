@@ -54,7 +54,7 @@ class Curve {
 }
 
 class CurveItem {
-	constructor(id, color, visible, selected, mathField, curve, valuesBuffer) {
+	constructor(id, color, visible, selected, mathField, curve, valuesBuffer, implicitBuffers) {
 		this.id = id;
 		this.color = color;
 		this.visible = visible;
@@ -62,6 +62,7 @@ class CurveItem {
 		this.mathField = mathField;
 		this.curve = curve;
 		this.valuesBuffer = valuesBuffer;
+		this.implicitBuffers = implicitBuffers;
 	}
 }
 

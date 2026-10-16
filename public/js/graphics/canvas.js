@@ -370,17 +370,42 @@ function drawImplicitCurve(curveItem) {
 	const columns = 1 + Math.ceil(w / state.marchingSquaresStep);
 	const rows = 1 + Math.ceil(h / state.marchingSquaresStep);
 
-	const screenXs = createFloat64Buffer(columns);
-	const screenYs = createFloat64Buffer(rows);
-	const betweenScreenXs = createFloat64Buffer(columns - 1);
-	const betweenScreenYs = createFloat64Buffer(rows - 1);
-	const worldXs = createFloat64Buffer(columns);
-	const worldYs = createFloat64Buffer(rows);
-	const betweenWorldXs = createFloat64Buffer(columns - 1);
-	const betweenWorldYs = createFloat64Buffer(rows - 1);
-	const values = createFloat64Buffer(columns * rows);
-	const betweenXValues = createFloat64Buffer((columns - 1) * rows);
-	const betweenYValues = createFloat64Buffer(columns * (rows - 1));
+	if (!curveItem.implicitBuffers
+		|| !curveItem.implicitBuffers.columns
+		|| curveItem.implicitBuffers.columns < columns
+		|| !curveItem.implicitBuffers.rows
+		|| curveItem.implicitBuffers.rows < rows
+	) {
+		curveItem.implicitBuffers = {
+			columns,
+			rows,
+			screenXs: createFloat64Buffer(columns),
+			screenYs: createFloat64Buffer(rows),
+			betweenScreenXs: createFloat64Buffer(columns - 1),
+			betweenScreenYs: createFloat64Buffer(rows - 1),
+			worldXs: createFloat64Buffer(columns),
+			worldYs: createFloat64Buffer(rows),
+			betweenWorldXs: createFloat64Buffer(columns - 1),
+			betweenWorldYs: createFloat64Buffer(rows - 1),
+			values: createFloat64Buffer(columns * rows),
+			betweenXValues: createFloat64Buffer((columns - 1) * rows),
+			betweenYValues: createFloat64Buffer(columns * (rows - 1)),
+		};
+	}
+
+	const {
+		screenXs,
+		screenYs,
+		betweenScreenXs,
+		betweenScreenYs,
+		worldXs,
+		worldYs,
+		betweenWorldXs,
+		betweenWorldYs,
+		values,
+		betweenXValues,
+		betweenYValues,
+	} = curveItem.implicitBuffers;
 
 	for (let i = 0; i < columns; ++i) {
 		screenXs[i] = Math.min(i * state.marchingSquaresStep, w);
