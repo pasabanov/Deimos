@@ -119,7 +119,7 @@ function evalNode(node, variables) {
 			}
 		}
 		case NODE_TYPE.IDENTIFIER:
-			throw new Error(`Got identifier node with text '${node.text}'. Identifiers are not supported yet`);
+			throw new Error(`Got identifier node with text '${node.name}'. Identifiers are not supported yet`);
 		default:
 			throw new Error(`Unexpected node type: ${node.type}`);
 	}

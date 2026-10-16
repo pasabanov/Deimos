@@ -265,9 +265,13 @@ function drawGrid() {
 	}
 }
 
+function createFloat64Buffer(length) {
+	return new Float64Array(length).fill(NaN);
+}
+
 function computeExplicitCurveScreenValues(curveItem, independentPixels, visibleSamples, samples, cropMin, cropMax, orientation) {
 	if (!curveItem.valuesBuffer || curveItem.valuesBuffer.length < samples) {
-		curveItem.valuesBuffer = new Float64Array(samples);
+		curveItem.valuesBuffer = createFloat64Buffer(samples);
 	}
 
 	for (let i = 0; i < samples; ++i) {
@@ -366,17 +370,17 @@ function drawImplicitCurve(curveItem) {
 	const columns = 1 + Math.ceil(w / state.marchingSquaresStep);
 	const rows = 1 + Math.ceil(h / state.marchingSquaresStep);
 
-	const screenXs = new Float64Array(columns);
-	const screenYs = new Float64Array(rows);
-	const betweenScreenXs = new Float64Array(columns - 1);
-	const betweenScreenYs = new Float64Array(rows - 1);
-	const worldXs = new Float64Array(columns);
-	const worldYs = new Float64Array(rows);
-	const betweenWorldXs = new Float64Array(columns - 1);
-	const betweenWorldYs = new Float64Array(rows - 1);
-	const values = new Float64Array(columns * rows);
-	const betweenXValues = new Float64Array((columns - 1) * rows);
-	const betweenYValues = new Float64Array(columns * (rows - 1));
+	const screenXs = createFloat64Buffer(columns);
+	const screenYs = createFloat64Buffer(rows);
+	const betweenScreenXs = createFloat64Buffer(columns - 1);
+	const betweenScreenYs = createFloat64Buffer(rows - 1);
+	const worldXs = createFloat64Buffer(columns);
+	const worldYs = createFloat64Buffer(rows);
+	const betweenWorldXs = createFloat64Buffer(columns - 1);
+	const betweenWorldYs = createFloat64Buffer(rows - 1);
+	const values = createFloat64Buffer(columns * rows);
+	const betweenXValues = createFloat64Buffer((columns - 1) * rows);
+	const betweenYValues = createFloat64Buffer(columns * (rows - 1));
 
 	for (let i = 0; i < columns; ++i) {
 		screenXs[i] = Math.min(i * state.marchingSquaresStep, w);
@@ -542,7 +546,7 @@ function drawImplicitCurve(curveItem) {
 
 function computeSingleVariableEquationValues(curveItem, independentPixels, visibleSamples, samples, orientation) {
 	if (!curveItem.valuesBuffer || curveItem.valuesBuffer.length < samples) {
-		curveItem.valuesBuffer = new Float64Array(samples);
+		curveItem.valuesBuffer = createFloat64Buffer(samples);
 	}
 	for (let i = 0; i < samples; ++i) {
 		const sampleScreen = independentPixels * (i - state.preSamples) / visibleSamples;

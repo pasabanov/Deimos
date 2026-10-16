@@ -99,6 +99,7 @@ class Lexer {
 				this.skipWhitespace();
 			}
 		}
+		tokens.push(new Token(TOKEN_KIND.END, '', this.pos));
 		return tokens;
 	}
 }

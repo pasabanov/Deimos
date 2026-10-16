@@ -53,6 +53,9 @@ function addCurveItem() {
 					item.curve = compileLatex(latex);
 				} catch {
 					item.curve = null;
+					if (item.valuesBuffer) {
+						item.valuesBuffer.fill(NaN);
+					}
 				}
 				requestAnimationFrame(draw);
 			},

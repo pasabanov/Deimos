@@ -8,7 +8,7 @@ class Parser {
 	}
 
 	at(pos) {
-		return this.tokens[pos] ?? { kind: TOKEN_KIND.END, text: '', pos: this.pos };
+		return this.tokens[pos] ?? new Token(TOKEN_KIND.INVALID, '', NaN);
 	}
 
 	peek() {
@@ -59,7 +59,9 @@ class Parser {
 	}
 
 	parse() {
-		return this.parseAssignment();
+		const result = this.parseAssignment();
+		this.expect(TOKEN_KIND.END);
+		return result;
 	}
 
 	parseAssignment() {
@@ -178,7 +180,7 @@ class Parser {
 				return e;
 			}
 			case TOKEN_KIND.L_BRACE: {
-				if (this.tokens[this.pos-1].kind === TOKEN_KIND.POWER) {
+				if (this.at(this.pos - 1).kind === TOKEN_KIND.POWER) {
 					this.get();
 					const e = this.parseExpression();
 					this.expect(TOKEN_KIND.R_BRACE);
