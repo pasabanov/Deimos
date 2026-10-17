@@ -10,22 +10,47 @@
 <body>
 <main id="app">
 	<aside id="sidebar">
-		<div id="header">
-			<h1>Functions</h1>
+	<div id="toolbar">
+		<div class="toolbar-group">
+			<button id="zoom-out" title="Zoom Out"><iconify-icon icon="lucide:zoom-out"></iconify-icon></button>
+			<button id="zoom-in" title="Zoom In"><iconify-icon icon="lucide:zoom-in"></iconify-icon></button>
 		</div>
-		<div id="fn-list"></div>
-		<div id="fn-add">+</div>
+		<div class="toolbar-group">
+			<button id="reset-view" title="Default View"><iconify-icon icon="heroicons:home-solid"></iconify-icon></button>
+		</div>
+		<div class="toolbar-spacer"></div>
+		<div class="toolbar-group">
+			<button id="toggle-settings" title="Settings"><iconify-icon icon="lucide:settings-2"></iconify-icon></button>
+		</div>
+	</div>
+	<div id="items">
+		<div id="item-list"></div>
+		<div id="item-add">+</div>
+	</div>
+	<div id="settings" hidden>
+		<div class="settings-row settings-row-axis">
+			<span id="x-min" class="mq-host"></span>
+			<span class="mq-static" data-latex="\le x\le"></span>
+			<span id="x-max" class="mq-host"></span>
+		</div>
+		<div class="settings-row settings-row-axis">
+			<span id="y-min" class="mq-host"></span>
+			<span class="mq-static" data-latex="\le y\le"></span>
+			<span id="y-max" class="mq-host"></span>
+		</div>
+	</div>
 	</aside>
 	<div id="resizer"></div>
 	<div id="plot-area">
 		<canvas id="canvas"></canvas>
-		<div id="hud">
-			<div id="ranges"></div>
-		</div>
 	</div>
 </main>
+<div id="iconify-preload" hidden>
+	<iconify-icon icon="lucide:x"></iconify-icon>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.3/dist/iconify-icon.min.js"></script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

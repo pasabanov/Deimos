@@ -2,8 +2,29 @@ import { state } from '../core/state.js';
 import { el } from '../ui/el.js';
 import { MATH_EXPRESSION_TYPE } from '../core/math-expression.js';
 import { GraphItem } from '../core/items.js';
+import { requestSyncSettings } from '../ui/sidebar.js';
+import { requestSeparateFrameOnce } from '../utils/scheduler.js';
 
 const ctx = el.canvas.getContext('2d');
+
+function updateWorld(xmin, xmax, ymin, ymax) {
+	state.world.xmin = xmin;
+	state.world.xmax = xmax;
+	state.world.ymin = ymin;
+	state.world.ymax = ymax;
+	requestSyncSettings();
+	requestDraw();
+}
+
+function restoreDefaultWorld() {
+	updateWorld(
+		state.defaultWorld.xmin,
+		state.defaultWorld.xmax,
+		state.defaultWorld.ymin,
+		state.defaultWorld.ymax,
+	);
+	reflowWorldToCanvas();
+}
 
 function reflowWorldToCanvas() {
 	const w = el.canvas.clientWidth;
@@ -15,8 +36,25 @@ function reflowWorldToCanvas() {
 	const ppx = w / rangeX;
 	const rangeY = h / ppx;
 	const cy = (state.world.ymin + state.world.ymax) * 0.5;
-	state.world.ymin = cy - rangeY * 0.5;
-	state.world.ymax = cy + rangeY * 0.5;
+	updateWorld(
+		state.world.xmin,
+		state.world.xmax,
+		cy - rangeY * 0.5,
+		cy + rangeY * 0.5,
+	);
+}
+
+function zoom(scale) {
+	const rect = el.canvas.getBoundingClientRect();
+	handleZoom(rect.left + el.canvas.clientWidth / 2, rect.top + el.canvas.clientHeight / 2, scale);
+}
+
+function zoomIn() {
+	zoom(1 / state.buttonZoomScale);
+}
+
+function zoomOut() {
+	zoom(state.buttonZoomScale);
 }
 
 function resizeCanvas() {
@@ -26,7 +64,7 @@ function resizeCanvas() {
 	el.canvas.height = Math.floor(rect.height * dpr);
 	ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 	reflowWorldToCanvas();
-	requestAnimationFrame(draw);
+	requestDraw();
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -687,20 +725,24 @@ function drawGraphs() {
 function draw() {
 	drawGrid();
 	drawGraphs();
-	el.ranges.textContent = `x: [${formatBoundary(state.world.xmin)}, ${formatBoundary(state.world.xmax)}]  y: [${formatBoundary(state.world.ymin)}, ${formatBoundary(state.world.ymax)}]`;
 }
 
-function handleZoom(clientX, clientY, delta) {
+function requestDraw() {
+	requestSeparateFrameOnce(draw);
+}
+
+function handleZoom(clientX, clientY, scale) {
 	const rect = el.canvas.getBoundingClientRect();
 	const sx = clientX - rect.left;
 	const sy = clientY - rect.top;
 	const p = screenToWorld(sx, sy);
-	const scale = delta < 0 ? 1 / 1.1 : 1.1;
 
-	state.world.xmin = p.x + (state.world.xmin - p.x) * scale;
-	state.world.xmax = p.x + (state.world.xmax - p.x) * scale;
-	state.world.ymin = p.y + (state.world.ymin - p.y) * scale;
-	state.world.ymax = p.y + (state.world.ymax - p.y) * scale;
+	updateWorld(
+		p.x + (state.world.xmin - p.x) * scale,
+		p.x + (state.world.xmax - p.x) * scale,
+		p.y + (state.world.ymin - p.y) * scale,
+		p.y + (state.world.ymax - p.y) * scale,
+	);
 }
 
 function handleDragInit(clientX, clientY) {
@@ -724,10 +766,12 @@ function handleDrag(clientX, clientY) {
 	const ddx = p1.x - p2.x;
 	const ddy = p1.y - p2.y;
 
-	state.world.xmin = state.drag.worldStart.xmin + ddx;
-	state.world.xmax = state.drag.worldStart.xmax + ddx;
-	state.world.ymin = state.drag.worldStart.ymin + ddy;
-	state.world.ymax = state.drag.worldStart.ymax + ddy;
+	updateWorld(
+		state.drag.worldStart.xmin + ddx,
+		state.drag.worldStart.xmax + ddx,
+		state.drag.worldStart.ymin + ddy,
+		state.drag.worldStart.ymax + ddy,
+	);
 }
 
 function handlePinchInit() {
@@ -771,10 +815,12 @@ function handlePinch() {
 	const worldWidth = (state.pinch.worldStart.xmax - state.pinch.worldStart.xmin) * scale;
 	const worldHeight = (state.pinch.worldStart.ymax - state.pinch.worldStart.ymin) * scale;
 
-	state.world.xmin = state.pinch.anchorX - midX / rect.width * worldWidth;
-	state.world.xmax = state.world.xmin + worldWidth;
-	state.world.ymax = state.pinch.anchorY + midY / rect.height * worldHeight;
-	state.world.ymin = state.world.ymax - worldHeight;
+	updateWorld(
+		state.pinch.anchorX - midX / rect.width * worldWidth,
+		state.pinch.anchorX - (midX / rect.width - 1) * worldWidth,
+		state.pinch.anchorY + (midY / rect.height - 1) * worldHeight,
+		state.pinch.anchorY + midY / rect.height * worldHeight,
+	);
 }
 
 function onWheel(e) {
@@ -785,11 +831,10 @@ function onWheel(e) {
 	if (state.drag.active) {
 		handleDrag(e.clientX, e.clientY);
 	}
-	handleZoom(e.clientX, e.clientY, e.deltaY);
+	handleZoom(e.clientX, e.clientY, e.deltaY < 0 ? 1 / state.wheelZoomScale : state.wheelZoomScale);
 	if (state.drag.active) {
 		handleDragInit(e.clientX, e.clientY);
 	}
-	requestAnimationFrame(draw);
 }
 
 function onPointerDown(e) {
@@ -811,7 +856,7 @@ function onPointerDown(e) {
 		state.pinch.pointer2.y = e.clientY;
 		handlePinchInit();
 	}
-	requestAnimationFrame(draw);
+	requestDraw();
 }
 
 function onPointerMove(e) {
@@ -829,7 +874,6 @@ function onPointerMove(e) {
 	} else {
 		handleDrag(e.clientX, e.clientY);
 	}
-	requestAnimationFrame(draw);
 }
 
 function onUpOrCancel(e) {
@@ -847,7 +891,7 @@ function onUpOrCancel(e) {
 		state.pinch.pointer2.x = NaN;
 		state.pinch.pointer2.y = NaN;
 		handleDragInit(state.pinch.pointer1.x, state.pinch.pointer1.y);
-		requestAnimationFrame(draw);
+		requestDraw();
 		return;
 	}
 	if (e.pointerId === state.pinch.pointer1.id) {
@@ -867,4 +911,4 @@ function initCanvas() {
 	window.addEventListener('pointercancel', onUpOrCancel);
 }
 
-export { initCanvas, resizeCanvas, draw };
+export { restoreDefaultWorld, zoomIn, zoomOut, resizeCanvas, requestDraw, initCanvas };
