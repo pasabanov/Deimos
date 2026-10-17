@@ -25,9 +25,9 @@ body {
 }
 
 #sidebar {
-	padding: 16px;
-	overflow: auto;
+	padding: 12px;
 	min-height: 0;
+	overflow: auto;
 	border-right: 1px solid #e2e8f0;
 }
 
@@ -35,9 +35,9 @@ body {
 	position: relative;
 	z-index: 10;
 	width: 1px;
+	background: #ddd;
 	touch-action: none;
 	cursor: col-resize;
-	background: #ddd;
 }
 
 #resizer::before {
@@ -46,8 +46,8 @@ body {
 	right: 100%;
 	bottom: 0;
 	width: 6px;
-	pointer-events: none;
 	background: linear-gradient(to left, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+	pointer-events: none;
 	content: '';
 }
 
@@ -57,58 +57,104 @@ body {
 	right: -8px;
 	bottom: 0;
 	left: -8px;
-	content: '';
 	cursor: col-resize;
+	content: '';
 }
 
-#header {
+#toolbar {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 12px;
+	gap: 6px;
+	margin-bottom: 8px;
 }
 
-#header h1 {
+.toolbar-group {
+	display: flex;
+	gap: 2px;
+	padding: 2px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+}
+
+.toolbar-spacer {
+	flex: 1;
+}
+
+#toolbar button {
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
 	font-size: 18px;
-	font-weight: 700;
+	line-height: 1;
+	color: #475569;
+	background: none;
+	border: 0;
+	border-radius: 6px;
+	cursor: pointer;
 }
 
-#fn-list {
+#toolbar button:hover {
+	color: #0f172a;
+	background: rgba(15, 23, 42, 0.06);
+}
+
+#toolbar button.active {
+	color: #dc2626;
+	background: rgba(220, 38, 38, 0.08);
+}
+
+#toolbar button.active:hover {
+	color: #b91c1c;
+	background: rgba(220, 38, 38, 0.12);
+}
+
+#items {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	min-height: 0;
 }
 
-.fn-item {
-	position: relative;
+#item-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.item {
 	display: grid;
 	grid-template-columns: 20px 1fr;
-	gap: 8px;
+	gap: 12px;
 	align-items: center;
-	padding: 10px;
+	position: relative;
+	padding: 2px 2px 2px 10px;
 	border: 1px solid #e2e8f0;
 	border-radius: 10px;
 }
 
-.fn-color {
+.item-color {
 	width: 24px;
 	height: 24px;
 	border-radius: 50%;
 	cursor: pointer;
 }
 
-.fn-color.off {
+.item-color.off {
 	opacity: 0.75;
 }
 
-.fn-mq {
+.item .mq-host {
+	display: flex;
+	align-items: center;
 	padding: 6px 8px;
-	min-height: 36px;
-	border: 1px dashed transparent;
+	min-height: 40px;
+	border: 1px solid transparent;
 	border-radius: 6px;
 }
 
-.fn-delete {
+.item-delete {
 	position: absolute;
 	top: 6px;
 	right: 6px;
@@ -117,7 +163,7 @@ body {
 	cursor: pointer;
 }
 
-.fn-delete::before {
+.item-delete::before {
 	display: block;
 	font-size: 24px;
 	line-height: 16px;
@@ -125,22 +171,58 @@ body {
 	content: '×';
 }
 
-.fn-delete:hover::before {
+.item-delete:hover::before {
 	color: #475569;
 }
 
-#fn-add {
+#item-add {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	height: 38px;
-	margin: 10px;
+	margin: 8px;
 	font-size: 24px;
 	color: #9aa9bc;
 	border: 1px dashed #9aa9bc;
 	border-radius: 10px;
 	user-select: none;
 	cursor: pointer;
+}
+
+#settings {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+#settings .mq-host {
+	flex: 1 1 0;
+	min-width: 0;
+	padding: 6px;
+	font-size: 16px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+}
+
+#settings .settings-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+#settings .settings-row .mq-static {
+	flex: 0 0 auto;
+	padding: 2px 0 0;
+	font-size: 16px;
+	color: #1e293b;
+	user-select: none;
+	pointer-events: none;
+}
+
+#settings .settings-row-axis .mq-host {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
 }
 
 #plot-area {
@@ -158,24 +240,6 @@ body {
 	min-width: 175px;
 	min-height: 175px;
 	touch-action: none;
-}
-
-#hud {
-	position: absolute;
-	left: 10px;
-	bottom: 10px;
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	font-size: 12px;
-	color: #0f172a;
-}
-
-#ranges {
-	padding: 6px 8px;
-	background: rgba(248, 250, 252, 0.8);
-	border: 1px solid #e2e8f0;
-	border-radius: 6px;
 }
 
 @media (orientation: portrait) {
@@ -218,4 +282,8 @@ body {
 	#plot-area {
 		grid-row: 1;
 	}
+}
+
+[hidden] {
+	display: none !important;
 }
