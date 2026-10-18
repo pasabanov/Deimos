@@ -1,4 +1,4 @@
-import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@11.8.2/+esm';
+import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@15.2.0/+esm';
 
 import { lgamma, labsgamma, binomial } from '../math/index.js';
 
@@ -114,6 +114,7 @@ function evalNode(node, variables) {
 					}
 					return max;
 				}
+				case FUNCTIONS.ERF: return mathjs.erf(arg1);
 				default:
 					throw new Error(`Unexpected function: ${node.name}`);
 			}

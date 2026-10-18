@@ -145,6 +145,7 @@ const FUNCTIONS = Object.freeze({
 	BINOM: 'binom',
 	MIN: 'min',
 	MAX: 'max',
+	ERF: 'erf',
 });
 
 const FUNCTION_ALIASES = Object.freeze({

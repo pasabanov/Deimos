@@ -1,4 +1,4 @@
-import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@11.8.2/+esm';
+import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@15.2.0/+esm';
 
 function lgamma(x) {
 	if (x < 0) {
