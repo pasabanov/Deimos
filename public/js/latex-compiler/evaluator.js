@@ -1,6 +1,6 @@
 import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@15.2.0/+esm';
 
-import { lgamma, labsgamma, binomial } from '../math/index.js';
+import { lgamma, labsgamma, binomial, cycloid } from '../math/index.js';
 
 import { NODE_TYPE, OPERATORS, FUNCTIONS } from './datatypes.js';
 
@@ -115,6 +115,13 @@ function evalNode(node, variables) {
 					return max;
 				}
 				case FUNCTIONS.ERF: return mathjs.erf(arg1);
+				case FUNCTIONS.CYCLOID: {
+					if (node.args.length === 1) {
+						return cycloid(arg1);
+					} else {
+						return cycloid(arg1, evalNode(node.args[1], variables));
+					}
+				}
 				default:
 					throw new Error(`Unexpected function: ${node.name}`);
 			}

@@ -51,4 +51,33 @@ function binomial(x, y) {
 	return sign * Math.exp(logValue);
 }
 
-export { lgamma, labsgamma, binomial };
+function cycloid(x, r = 1) {
+	if (r <= 0) {
+		return NaN;
+	}
+
+	x = Math.abs(x) % (2 * Math.PI * r);
+
+	const target = x / r;
+
+	let t = target <= Math.PI ?
+		Math.cbrt(6 * target) :
+		2 * Math.PI - Math.cbrt(6 * (2 * Math.PI - target));
+
+	for (let _ = 0; _ < 10; ++_) {
+		const f = t - Math.sin(t) - target;
+		const df = 1 - Math.cos(t);
+
+		const delta = f / df;
+
+		if (!Number.isFinite(delta) || delta === 0) {
+			break;
+		}
+
+		t -= delta;
+	}
+
+	return r * (1 - Math.cos(t));
+}
+
+export { lgamma, labsgamma, binomial, cycloid };

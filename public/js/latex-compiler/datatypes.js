@@ -146,6 +146,7 @@ const FUNCTIONS = Object.freeze({
 	MIN: 'min',
 	MAX: 'max',
 	ERF: 'erf',
+	CYCLOID: 'cycloid',
 });
 
 const FUNCTION_ALIASES = Object.freeze({
