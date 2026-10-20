@@ -56,16 +56,14 @@ function cycloid(x, r = 1) {
 		return NaN;
 	}
 
-	x = Math.abs(x) % (2 * Math.PI * r);
+	x /= r;
+	x = Math.abs(x) % (2 * Math.PI);
+	x = Math.min(x, 2 * Math.PI - x);
 
-	const target = x / r;
-
-	let t = target <= Math.PI ?
-		Math.cbrt(6 * target) :
-		2 * Math.PI - Math.cbrt(6 * (2 * Math.PI - target));
+	let t = Math.cbrt(6 * x);
 
 	for (let _ = 0; _ < 10; ++_) {
-		const f = t - Math.sin(t) - target;
+		const f = t - Math.sin(t) - x;
 		const df = 1 - Math.cos(t);
 
 		const delta = f / df;
