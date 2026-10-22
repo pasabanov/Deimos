@@ -201,6 +201,13 @@ class Parser {
 					throw new Error(`Unexpected left brace '{' at ${this.pos}`);
 				}
 			}
+			case TOKEN_KIND.VERTICAL_BAR:
+			case TOKEN_KIND.LEFT_VERTICAL_BAR: {
+				this.get();
+				const e = this.parseExpression();
+				this.expectOneOf([TOKEN_KIND.VERTICAL_BAR, TOKEN_KIND.RIGHT_VERTICAL_BAR]);
+				return new Node(NODE_TYPE.FUNCTION, null, FUNCTIONS.ABS, [e]);
+			}
 			case TOKEN_KIND.OPERATORNAME: {
 				this.get();
 
@@ -383,6 +390,8 @@ class Parser {
 			case TOKEN_KIND.R_BRACE:
 			case TOKEN_KIND.LEFT_BRACE:
 			case TOKEN_KIND.RIGHT_BRACE:
+			case TOKEN_KIND.VERTICAL_BAR:
+			case TOKEN_KIND.RIGHT_VERTICAL_BAR:
 			case TOKEN_KIND.FACTORIAL:
 			case TOKEN_KIND.END:
 			case TOKEN_KIND.INVALID:
