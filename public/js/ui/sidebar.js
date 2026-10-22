@@ -17,7 +17,11 @@ const MQ_BASE = {
 	autoOperatorNames: AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
 };
 
-function addGraphItem() {
+function addGraphItem(index = null) {
+	if (index < 0 || index >= state.items.length) {
+		index = null;
+	}
+
 	const id = crypto.randomUUID();
 	const color = state.colors[state.colorIndex];
 	state.colorIndex = (state.colorIndex + 1) % state.colors.length;
@@ -39,7 +43,6 @@ function addGraphItem() {
 	wrapper.appendChild(colorDot);
 	wrapper.appendChild(mqHost);
 	wrapper.appendChild(del);
-	el.itemList.appendChild(wrapper);
 
 	let graphItem = new GraphItem(id, color, true, false, null, null, null, null);
 
@@ -71,8 +74,8 @@ function addGraphItem() {
 				requestDraw();
 			},
 			enter: () => {
-				addGraphItem();
 				const idx = state.items.findIndex(x => x.id === id);
+				addGraphItem(idx + 1);
 				state.items[idx+1].mathField.focus();
 			},
 			moveOutOf: dir => {
@@ -124,7 +127,13 @@ function addGraphItem() {
 		graphItem.selected = false;
 	});
 
-	state.items.push(graphItem);
+	if (index === null) {
+		state.items.push(graphItem);
+		el.itemList.appendChild(wrapper);
+	} else {
+		state.items.splice(index, 0, graphItem);
+		el.itemList.children[index].before(wrapper);
+	}
 
 	colorDot.addEventListener('pointerdown', e => e.preventDefault());
 	colorDot.addEventListener('click', () => {
@@ -161,7 +170,7 @@ function addGraphItem() {
 
 function initItems() {
 	addGraphItem();
-	el.itemAdd.addEventListener('click', addGraphItem);
+	el.itemAdd.addEventListener('click', () => addGraphItem());
 }
 
 const settings = {
