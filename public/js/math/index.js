@@ -95,4 +95,50 @@ function cycloid(x, r = 1) {
 	return r * (1 - Math.cos(t));
 }
 
-export { root, lgamma, labsgamma, binomial, cycloid };
+function lambertW(x, branch = 0) {
+	if (branch !== 0 && branch !== -1) {
+		return NaN;
+	}
+	if (branch === -1 && x >= 0) {
+		return NaN;
+	}
+	if (x < -1 / Math.E) {
+		return NaN;
+	}
+
+	let t;
+	if (branch === 0) {
+		if (x > Math.E) {
+			t = Math.log(x) - Math.log(Math.log(x));
+		} else if (x >= 0) {
+			t = x / Math.E;
+		} else if (x > -0.36) {
+			t = (Math.E * x * Math.log(1 + Math.sqrt(1 + Math.E * x))) / (1 + Math.E * x + Math.sqrt(1 + Math.E * x));
+		} else {
+			t = -1 + Math.SQRT2 * Math.sqrt(1 + Math.E * x);
+		}
+	} else {
+		if (x > -0.25) {
+			t = Math.log(-x) - Math.log(-Math.log(-x));
+		} else {
+			t = -1 - Math.SQRT2 * Math.sqrt(1 + Math.E * x);
+		}
+	}
+
+	for (let _ = 0; _ < 10; ++_) {
+		const f = t * Math.exp(t) - x;
+		const df = (t + 1) * Math.exp(t);
+
+		const delta = f / df;
+
+		if (!Number.isFinite(delta) || delta === 0) {
+			break;
+		}
+
+		t -= delta;
+	}
+
+	return t;
+}
+
+export { root, lgamma, labsgamma, binomial, cycloid, lambertW };

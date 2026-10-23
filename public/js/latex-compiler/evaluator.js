@@ -1,6 +1,6 @@
 import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@15.2.0/+esm';
 
-import { root, lgamma, labsgamma, binomial, cycloid } from '../math/index.js';
+import { root, lgamma, labsgamma, binomial, cycloid, lambertW } from '../math/index.js';
 
 import { NODE_TYPE, OPERATORS, FUNCTIONS } from './datatypes.js';
 
@@ -142,6 +142,13 @@ function evalNode(node, variables) {
 						return cycloid(arg1);
 					} else {
 						return cycloid(arg1, evalNode(node.args[1], variables));
+					}
+				}
+				case FUNCTIONS.LAMBERTW: {
+					if (node.args.length === 1) {
+						return lambertW(arg1);
+					} else {
+						return lambertW(arg1, evalNode(node.args[1], variables));
 					}
 				}
 				default:

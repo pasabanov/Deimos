@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { TOKEN_KIND, OPERATORS_INFO, VARIABLES, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTIONS_REQUIRING_SUBSCRIPT, FUNCTION_ALIASES, NODE_TYPE, Node } from './datatypes.js';
+import { TOKEN_KIND, OPERATORS_INFO, VARIABLES, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTIONS_REQUIRING_SUBSCRIPT, FUNCTIONS_WITH_OPTIONAL_SUBSCRIPT, FUNCTION_ALIASES, NODE_TYPE, Node } from './datatypes.js';
 
 class Parser {
 	constructor(tokens) {
@@ -227,6 +227,11 @@ class Parser {
 				if (FUNCTIONS_REQUIRING_SUBSCRIPT.includes(funcName)) {
 					this.expect(TOKEN_KIND.UNDERSCORE);
 					subscript = this.parsePrimary();
+				} else if (FUNCTIONS_WITH_OPTIONAL_SUBSCRIPT.includes(funcName)) {
+					if (this.peek().kind === TOKEN_KIND.UNDERSCORE) {
+						this.get();
+						subscript = this.parsePrimary();
+					}
 				}
 
 				let exponent;
@@ -238,6 +243,8 @@ class Parser {
 				const f = new Node(NODE_TYPE.FUNCTION, null, funcName, this.parseFuncArguments());
 				if (FUNCTIONS_REQUIRING_SUBSCRIPT.includes(funcName)) {
 					f.args.unshift(subscript);
+				} else if (FUNCTIONS_WITH_OPTIONAL_SUBSCRIPT.includes(funcName) && subscript !== undefined) {
+					f.args.push(subscript);
 				}
 				if (exponent !== undefined) {
 					return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.POWER, [f, exponent]);

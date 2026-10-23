@@ -156,10 +156,15 @@ const FUNCTIONS = Object.freeze({
 	GENERALIZED: 'generalized',
 	ERF: 'erf',
 	CYCLOID: 'cycloid',
+	LAMBERTW: 'LambertW',
 });
 
 const FUNCTIONS_REQUIRING_SUBSCRIPT = Object.freeze([
 	'generalized',
+]);
+
+const FUNCTIONS_WITH_OPTIONAL_SUBSCRIPT = Object.freeze([
+	'LambertW',
 ]);
 
 const FUNCTION_ALIASES = Object.freeze({
@@ -249,6 +254,7 @@ export {
 	OPERATORS,
 	FUNCTIONS,
 	FUNCTIONS_REQUIRING_SUBSCRIPT,
+	FUNCTIONS_WITH_OPTIONAL_SUBSCRIPT,
 	FUNCTION_ALIASES,
 	AUTO_COMMANDS_FOR_MATHQUILL,
 	AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
