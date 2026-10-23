@@ -1,6 +1,6 @@
 import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@15.2.0/+esm';
 
-import { lgamma, labsgamma, binomial, cycloid } from '../math/index.js';
+import { root, lgamma, labsgamma, binomial, cycloid } from '../math/index.js';
 
 import { NODE_TYPE, OPERATORS, FUNCTIONS } from './datatypes.js';
 
@@ -29,34 +29,7 @@ function evalNode(node, variables) {
 			switch (node.name) {
 				case FUNCTIONS.FRAC: return arg1 / evalNode(node.args[1], variables);
 				case FUNCTIONS.SQRT: return Math.sqrt(arg1);
-				case FUNCTIONS.ROOT: {
-					const degree = arg1;
-					const arg = evalNode(node.args[1], variables);
-					if (Number.isInteger(degree)) {
-						if (degree === 1) {
-							return arg;
-						}
-						if (degree === 2) {
-							return Math.sqrt(arg);
-						}
-						if (degree === 3) {
-							return Math.cbrt(arg);
-						}
-						if (degree === -1) {
-							return 1 / arg;
-						}
-						if (degree === -2) {
-							return 1 / Math.sqrt(arg);
-						}
-						if (degree === -3) {
-							return 1 / Math.cbrt(arg);
-						}
-						if (arg < 0 && degree % 2 !== 0) {
-							return -Math.pow(-arg, 1 / degree);
-						}
-					}
-					return Math.pow(arg, 1 / degree);
-				}
+				case FUNCTIONS.ROOT: return root(evalNode(node.args[1], variables), arg1);
 				case FUNCTIONS.ABS: return Math.abs(arg1);
 				case FUNCTIONS.SIGN: return Math.sign(arg1);
 				case FUNCTIONS.ROUND: return Math.round(arg1);
@@ -113,6 +86,55 @@ function evalNode(node, variables) {
 						max = Math.max(max, evalNode(node.args[i], variables));
 					}
 					return max;
+				}
+				case FUNCTIONS.HARMONIC: {
+					let h = 1 / arg1;
+					for (let i = 1; i < node.args.length; ++i) {
+						h += 1 / evalNode(node.args[i], variables);
+					}
+					return node.args.length / h;
+				}
+				case FUNCTIONS.GEOMETRIC: {
+					let g = arg1;
+					for (let i = 1; i < node.args.length; ++i) {
+						g *= evalNode(node.args[i], variables);
+					}
+					return root(g, node.args.length);
+				}
+				case FUNCTIONS.ARITHMETIC: {
+					let a = arg1;
+					for (let i = 1; i < node.args.length; ++i) {
+						a += evalNode(node.args[i], variables);
+					}
+					return a / node.args.length;
+				}
+				case FUNCTIONS.QUADRATIC: {
+					let q = arg1 ** 2;
+					for (let i = 1; i < node.args.length; ++i) {
+						q += evalNode(node.args[i], variables) ** 2;
+					}
+					return Math.sqrt(q / node.args.length);
+				}
+				case FUNCTIONS.CUBIC: {
+					let c = arg1 ** 3;
+					for (let i = 1; i < node.args.length; ++i) {
+						c += evalNode(node.args[i], variables) ** 3;
+					}
+					return Math.cbrt(c / node.args.length);
+				}
+				case FUNCTIONS.GENERALIZED: {
+					if (arg1 === 0) {
+						let g = 1;
+						for (let i = 1; i < node.args.length; ++i) {
+							g *= evalNode(node.args[i], variables);
+						}
+						return root(g, node.args.length - 1);
+					}
+					let g = 0;
+					for (let i = 1; i < node.args.length; ++i) {
+						g += Math.pow(evalNode(node.args[i], variables), arg1);
+					}
+					return root(g / (node.args.length - 1), arg1);
 				}
 				case FUNCTIONS.ERF: return mathjs.erf(arg1);
 				case FUNCTIONS.CYCLOID: {

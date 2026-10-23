@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { TOKEN_KIND, OPERATORS_INFO, VARIABLES, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTION_ALIASES, NODE_TYPE, Node } from './datatypes.js';
+import { TOKEN_KIND, OPERATORS_INFO, VARIABLES, CONSTANTS, OPERATORS, FUNCTIONS, FUNCTIONS_REQUIRING_SUBSCRIPT, FUNCTION_ALIASES, NODE_TYPE, Node } from './datatypes.js';
 
 class Parser {
 	constructor(tokens) {
@@ -223,6 +223,12 @@ class Parser {
 					funcName = FUNCTION_ALIASES[funcName];
 				}
 
+				let subscript;
+				if (FUNCTIONS_REQUIRING_SUBSCRIPT.includes(funcName)) {
+					this.expect(TOKEN_KIND.UNDERSCORE);
+					subscript = this.parsePrimary();
+				}
+
 				let exponent;
 				if (this.peek().kind === TOKEN_KIND.POWER) {
 					this.get();
@@ -230,6 +236,9 @@ class Parser {
 				}
 
 				const f = new Node(NODE_TYPE.FUNCTION, null, funcName, this.parseFuncArguments());
+				if (FUNCTIONS_REQUIRING_SUBSCRIPT.includes(funcName)) {
+					f.args.unshift(subscript);
+				}
 				if (exponent !== undefined) {
 					return new Node(NODE_TYPE.OPERATOR, null, OPERATORS.POWER, [f, exponent]);
 				} else {

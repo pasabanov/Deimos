@@ -1,5 +1,22 @@
 import * as mathjs from 'https://cdn.jsdelivr.net/npm/mathjs@15.2.0/+esm';
 
+function root(radicand, degree) {
+	if (Number.isInteger(degree)) {
+		switch (degree) {
+			case 1: return radicand;
+			case 2: return Math.sqrt(radicand);
+			case 3: return Math.cbrt(radicand);
+			case -1: return 1 / radicand;
+			case -2: return 1 / Math.sqrt(radicand);
+			case -3: return 1 / Math.cbrt(radicand);
+		}
+		if (radicand < 0 && degree % 2 !== 0) {
+			return -Math.pow(-radicand, 1 / degree);
+		}
+	}
+	return Math.pow(radicand, 1 / degree);
+}
+
 function lgamma(x) {
 	if (x < 0) {
 		return Math.log(Math.PI / Math.sin(Math.PI * x)) - mathjs.lgamma(1 - x);
@@ -78,4 +95,4 @@ function cycloid(x, r = 1) {
 	return r * (1 - Math.cos(t));
 }
 
-export { lgamma, labsgamma, binomial, cycloid };
+export { root, lgamma, labsgamma, binomial, cycloid };

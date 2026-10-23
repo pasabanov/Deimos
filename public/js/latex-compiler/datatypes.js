@@ -148,9 +148,19 @@ const FUNCTIONS = Object.freeze({
 	BINOM: 'binom',
 	MIN: 'min',
 	MAX: 'max',
+	HARMONIC: 'harmonic',
+	GEOMETRIC: 'geometric',
+	ARITHMETIC: 'arithmetic',
+	QUADRATIC: 'quadratic',
+	CUBIC: 'cubic',
+	GENERALIZED: 'generalized',
 	ERF: 'erf',
 	CYCLOID: 'cycloid',
 });
+
+const FUNCTIONS_REQUIRING_SUBSCRIPT = Object.freeze([
+	'generalized',
+]);
 
 const FUNCTION_ALIASES = Object.freeze({
 	'sgn': 'sign',
@@ -194,6 +204,10 @@ const FUNCTION_ALIASES = Object.freeze({
 	'acsch': 'arccsch',
 	'arccosech': 'arccsch',
 	'acosech': 'arccsch',
+
+	'mean': 'arithmetic',
+	'average': 'arithmetic',
+	'rms': 'quadratic',
 });
 
 const NOT_OPERATOR_NAMES = ['frac', 'sqrt', 'root', 'Gamma', 'binom'];
@@ -234,6 +248,7 @@ export {
 	CONSTANT_NAMES,
 	OPERATORS,
 	FUNCTIONS,
+	FUNCTIONS_REQUIRING_SUBSCRIPT,
 	FUNCTION_ALIASES,
 	AUTO_COMMANDS_FOR_MATHQUILL,
 	AUTO_OPERATOR_NAMES_FOR_MATHQUILL,
