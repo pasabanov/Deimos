@@ -89,7 +89,7 @@ const CONSTANTS = Object.freeze({
 	'varphi': (1 + Math.sqrt(5)) / 2,
 });
 
-const CONSTANT_NAMES = Object.freeze(Object.values(CONSTANTS));
+const CONSTANT_NAMES = Object.freeze(Object.keys(CONSTANTS));
 
 const OPERATORS = Object.freeze({
 	UNARY_PLUS: 'unary_plus',
