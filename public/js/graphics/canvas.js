@@ -64,7 +64,7 @@ function resizeCanvas() {
 	el.canvas.height = Math.floor(rect.height * dpr);
 	ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 	reflowWorldToCanvas();
-	requestDraw();
+	draw();
 }
 
 window.addEventListener('resize', resizeCanvas);
