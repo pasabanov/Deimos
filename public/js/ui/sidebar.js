@@ -94,7 +94,7 @@ function addGraphItem(index = null) {
 				}
 			},
 			deleteOutOf: dir => {
-				if (dir === MQ.L) {
+				if (dir === MQ.L && mathField.latex() === '') {
 					const idx = state.items.findIndex(x => x.id === id);
 					if (idx > 0) {
 						state.items.splice(idx, 1);
