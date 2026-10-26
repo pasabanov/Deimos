@@ -1,7 +1,6 @@
 import { isWhitespace, isDigit, isAlpha } from '../utils/char-utils.js';
 import { VARIABLES, CONSTANT_NAMES, TOKEN_KIND, TOKEN_KIND_VALUES, Token } from './datatypes.js';
 
-
 class Lexer {
 	constructor(text) {
 		this.text = text;
@@ -90,7 +89,7 @@ class Lexer {
 				}
 			}
 			this.skipWhitespace();
-			if (tokens[tokens.length-1].kind === TOKEN_KIND.POWER || tokens[tokens.length-1].kind === TOKEN_KIND.UNDERSCORE) {
+			if (tokens[tokens.length-1]?.kind === TOKEN_KIND.POWER || tokens[tokens.length-1]?.kind === TOKEN_KIND.UNDERSCORE) {
 				if (isDigit(this.peek())) {
 					tokens.push(new Token(TOKEN_KIND.NUMBER, this.get(), this.pos - 1));
 				} else if (isAlpha(this.peek())) {
